@@ -55,6 +55,9 @@ export function CharacterScreen() {
             {entry.h && <span className="tag">HSK {entry.h === 7 ? '7-9' : entry.h}</span>}
             {entry.f && <span className="tag">Fréquence n° {entry.f}</span>}
           </div>
+          <Link to={`/c/${entry.c}/ecrire`} className="button-link primary">
+            ✍ S'entraîner à l'écrire
+          </Link>
         </div>
       </div>
 

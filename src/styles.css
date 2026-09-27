@@ -48,6 +48,7 @@
 
 body {
   margin: 0;
+  overflow-wrap: break-word;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
@@ -182,6 +183,8 @@ main {
   padding: 0;
   margin: 0.8rem 0 0;
   display: grid;
+  /* minmax(0, 1fr) : la colonne ne s'élargit jamais au-delà de l'écran */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.4rem;
 }
 .result {
@@ -212,9 +215,7 @@ main {
 .result-body .defs {
   color: var(--muted);
   font-size: 0.92rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .result-kind {
   font-size: 0.75rem;
@@ -403,4 +404,238 @@ main {
 }
 .prose li {
   margin-bottom: 0.5rem;
+}
+
+/* --- Formulaires et boutons --- */
+
+button.primary,
+.button-link.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+button.primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.button-link {
+  display: inline-block;
+  justify-self: start;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+}
+.link-button {
+  border: none;
+  background: none;
+  color: var(--muted);
+  padding: 0.2rem 0;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+.field {
+  display: grid;
+  gap: 0.3rem;
+}
+.field > span {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.field.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.field.checkbox > span {
+  color: var(--ink);
+  font-size: 1rem;
+}
+select,
+textarea {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+textarea {
+  font-family: var(--font-hanzi);
+  font-size: 1.2rem;
+}
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+/* --- Entraînement à l'écriture --- */
+
+.narrow {
+  max-width: 520px;
+  margin: 0 auto;
+}
+.practice {
+  display: grid;
+  gap: 0.9rem;
+}
+.practice-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.progress {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+
+.writing-prompt {
+  display: grid;
+  gap: 0.2rem;
+  text-align: center;
+  justify-items: center;
+}
+.context-word {
+  margin: 0.2rem 0 0;
+}
+.context-word .hanzi {
+  font-size: 1.4rem;
+}
+.context-mask {
+  color: var(--accent);
+}
+.context-target {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.quiz {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+}
+.quiz-box {
+  /* Empêche le défilement de la page pendant le tracé au doigt */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border: 1px solid var(--line);
+}
+.quiz-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rating-chip {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  color: #fff;
+}
+.rating-again { --rating: #c62828; }
+.rating-hard { --rating: #ef6c00; }
+.rating-good { --rating: #2e7d32; }
+.rating-easy { --rating: #1565c0; }
+.rating-chip {
+  background: var(--rating);
+}
+
+.rating-panel {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+}
+.rating-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+}
+.rating-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  width: 100%;
+}
+.rating-button {
+  display: grid;
+  padding: 0.5rem 0.2rem;
+  border-color: var(--rating);
+  color: var(--ink);
+}
+.rating-button small {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.rating-button.selected {
+  background: var(--rating);
+  color: #fff;
+}
+.rating-button.selected small {
+  color: #fff;
+}
+.next-button {
+  width: 100%;
+  padding: 0.7rem;
+}
+
+.rating-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  text-align: center;
+  margin: 1rem 0;
+}
+.rating-counts strong {
+  display: block;
+  font-size: 1.8rem;
+}
+.result-rating {
+  display: grid;
+  justify-items: end;
+  gap: 0.1rem;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+.tabs button {
+  padding: 0.5rem 0.2rem;
+  font-size: 0.9rem;
+}
+.tabs button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.settings-inline summary {
+  cursor: pointer;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 420px) {
+  .brand span {
+    display: none;
+  }
 }

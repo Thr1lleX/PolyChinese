@@ -119,7 +119,8 @@ Un outil personnel pour apprendre le **chinois simplifié** avec traductions **e
 
 **Sens et écoute** : quatre boutons d'auto-évaluation après affichage de la réponse.
 
-**Correction de la note** : après chaque notation automatique, la note proposée s'affiche 2 secondes avec un bouton « Corriger ». C'est indispensable à la souris, où un trait raté peut venir du geste et non de la mémoire.
+**Correction de la note** : après chaque notation automatique, la note proposée s'affiche avec les 4 notes cliquables (touches 1 à 4) et un bouton « Suivant » (Entrée). C'est indispensable à la souris, où un trait raté peut venir du geste et non de la mémoire.
+> Étape 1 : pas de passage automatique après 2 s (prévu initialement), pour laisser le temps de revoir le caractère. À réévaluer à l'usage.
 
 ---
 

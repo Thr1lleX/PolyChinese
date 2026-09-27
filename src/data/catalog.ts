@@ -46,6 +46,15 @@ export class Catalog {
     return (this.wordsByCharIndex.get(c) ?? []).slice(0, limit);
   }
 
+  /**
+   * Mot courant servant de contexte à un caractère (« 学 dans 学生 ») :
+   * court, traduit en français, de préférence du HSK.
+   */
+  contextWord(c: string): WordEntry | undefined {
+    const candidates = this.wordsWithChar(c, 40).filter((w) => w.w.length <= 3 && w.rd[0].fr?.length);
+    return candidates.find((w) => w.h && w.h <= 4) ?? candidates[0];
+  }
+
   /** Caractères dont la décomposition contient `component`, les plus fréquents d'abord. */
   charsWithComponent(component: string, limit = 16): CharEntry[] {
     if (!this.componentIndex) {
