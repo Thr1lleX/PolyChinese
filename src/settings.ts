@@ -12,6 +12,21 @@ export interface Settings {
   showGrid: boolean;
   /** Nombre de caractères par série d'entraînement */
   practiceSize: number;
+  /** Durée de séance par défaut (min) et budget quotidien pour la planification */
+  dailyMinutes: number;
+  /** Plafond de nouveaux éléments par jour (le nombre réel s'adapte à la charge) */
+  maxNewPerDay: number;
+  /** Rétention visée par FSRS (0,80 à 0,95) */
+  retention: number;
+  /** Heure de bascule de la journée d'étude */
+  dayCutoffHour: number;
+  /** Jokers de régularité par semaine */
+  jokersPerWeek: number;
+  /** Dernier contexte et dernière durée choisis */
+  lastContext: 'speak' | 'listen' | 'silent';
+  lastDuration: number;
+  /** Date ISO de la dernière sauvegarde exportée */
+  lastExportAt: string | null;
 }
 
 const DEFAULTS: Settings = {
@@ -19,6 +34,14 @@ const DEFAULTS: Settings = {
   hintAfterMisses: 3,
   showGrid: true,
   practiceSize: 20,
+  dailyMinutes: 25,
+  maxNewPerDay: 8,
+  retention: 0.9,
+  dayCutoffHour: 4,
+  jokersPerWeek: 2,
+  lastContext: 'listen',
+  lastDuration: 25,
+  lastExportAt: null,
 };
 
 const KEY = 'polychinese.settings';

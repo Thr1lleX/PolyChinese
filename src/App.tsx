@@ -11,6 +11,10 @@ import { ImportScreen } from './screens/ImportScreen';
 import { TriageScreen } from './screens/TriageScreen';
 import { UnlockedScreen } from './screens/UnlockedScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { SearchScreen } from './screens/SearchScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
+import { StatsScreen } from './screens/StatsScreen';
+import { SessionScreen } from './session/SessionScreen';
 import { PracticeScreen } from './screens/PracticeScreen';
 import { WordScreen } from './screens/WordScreen';
 
@@ -33,8 +37,9 @@ export function App() {
         </Link>
         <nav>
           <NavLink to="/" end>
-            Recherche
+            Accueil
           </NavLink>
+          <NavLink to="/recherche">Chercher</NavLink>
           <NavLink to="/listes">Listes</NavLink>
           <NavLink to="/ecrire">Écrire</NavLink>
         </nav>
@@ -43,6 +48,10 @@ export function App() {
         <CatalogProvider>
           <Routes>
             <Route path="/" element={<HomeScreen />} />
+            <Route path="/recherche" element={<SearchScreen />} />
+            <Route path="/seance" element={<SessionScreen />} />
+            <Route path="/stats" element={<StatsScreen />} />
+            <Route path="/reglages" element={<SettingsScreen />} />
             <Route path="/c/:char" element={<CharacterScreen />} />
             <Route path="/c/:char/ecrire" element={<CharacterPracticeScreen />} />
             <Route path="/ecrire" element={<PracticeScreen />} />

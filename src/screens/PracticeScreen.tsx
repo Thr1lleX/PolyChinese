@@ -207,7 +207,7 @@ function Run({
         <RatingPanel
           auto={current.auto}
           value={current.final}
-          result={current.result}
+          description={describeResult(current.result)}
           onChange={setFinal}
           onNext={next}
           nextLabel={index + 1 >= queue.length ? 'Voir le bilan' : 'Suivant'}

@@ -1,0 +1,242 @@
+/* Étape 3 : accueil, séances, statistiques */
+
+.block {
+  display: block;
+  margin-top: 0.3rem;
+}
+.callout.subtle {
+  background: var(--surface);
+}
+
+.session-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  margin: 0.5rem 0 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.session-card h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.2rem;
+}
+.session-card .segmented {
+  margin: 0;
+}
+.session-card .segmented button {
+  padding: 0.5rem 0.2rem;
+  font-size: 0.9rem;
+}
+.plan-preview {
+  margin: 0;
+  text-align: center;
+}
+.big-button {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.regularity {
+  margin: 1.2rem 0;
+}
+.streak-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+.streak {
+  font-size: 1.2rem;
+}
+.calendar {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+}
+.calendar-col {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
+}
+.calendar-cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: var(--line);
+}
+.calendar-cell.level-1 { background: #c8e6c9; }
+.calendar-cell.level-2 { background: #81c784; }
+.calendar-cell.level-3 { background: #43a047; }
+.calendar-cell.level-4 { background: #1b5e20; }
+.calendar-cell.level-joker { background: repeating-linear-gradient(45deg, var(--line), var(--line) 2px, #ffcc80 2px, #ffcc80 4px); }
+.calendar-cell.today { outline: 2px solid var(--accent); outline-offset: -1px; }
+.calendar-cell.future { opacity: 0.3; }
+
+.coverage p {
+  margin: 0 0 0.4rem;
+}
+
+/* --- Séance --- */
+
+.session .practice-top {
+  gap: 0.5rem;
+}
+.context-select {
+  padding: 0.25rem 0.4rem;
+  font-size: 0.85rem;
+}
+.session-clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.study-card {
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+  text-align: center;
+}
+.card-type {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.new-badge {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+}
+.card-hanzi {
+  font-size: 5.5rem;
+  line-height: 1.15;
+}
+.card-hanzi.long {
+  font-size: 3.4rem;
+}
+.card-answer {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: center;
+}
+.card-answer p {
+  margin: 0;
+}
+.self-rate {
+  margin-top: 0.4rem;
+}
+.self-rate .rating-button {
+  padding: 0.75rem 0.2rem;
+  font-weight: 600;
+}
+.listen-button {
+  font-size: 3rem;
+  width: 7rem;
+  height: 7rem;
+  border-radius: 50%;
+  margin: 1rem 0 0;
+}
+.pinyin-form {
+  display: flex;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 360px;
+}
+.pinyin-form input {
+  flex: 1;
+  font-size: 1.2rem;
+  text-align: center;
+}
+.pinyin-feedback {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 1.6rem;
+  margin: 0;
+}
+.pinyin-feedback .ok {
+  border-bottom: 3px solid #2e7d32;
+}
+.pinyin-feedback .ko {
+  border-bottom: 3px solid #c62828;
+}
+.mini-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.95rem;
+}
+.mini-list .hanzi {
+  font-size: 1.2rem;
+}
+
+/* --- Statistiques --- */
+
+.rating-counts.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 90px;
+  padding: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.bars .bar {
+  flex: 1;
+  min-height: 1px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.8;
+}
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.stats-table th,
+.stats-table td {
+  text-align: left;
+  padding: 0.35rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+.forecast {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+  text-align: center;
+}
+.forecast-day {
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+}
+.bar-wrap {
+  display: flex;
+  align-items: flex-end;
+  height: 60px;
+  width: 100%;
+  justify-content: center;
+}
+.bar-wrap .bar {
+  width: 60%;
+  min-height: 1px;
+  background: #1565c0;
+  border-radius: 2px 2px 0 0;
+}
+input[type='number'] {
+  font: inherit;
+  width: 6rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}

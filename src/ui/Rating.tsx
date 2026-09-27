@@ -17,7 +17,8 @@ export function describeResult(r: WritingResult): string {
 interface PanelProps {
   auto: Rating;
   value: Rating;
-  result: WritingResult;
+  /** Résumé affiché à côté de la note (« 1 erreur · 1,4 s/trait ») */
+  description: string;
   onChange: (r: Rating) => void;
   onNext: () => void;
   nextLabel?: string;
@@ -27,7 +28,7 @@ interface PanelProps {
  * Note proposée par la machine, corrigeable (SPEC §4, principe 4).
  * Clavier : 1-4 = choisir la note, Entrée = suivant.
  */
-export function RatingPanel({ auto, value, result, onChange, onNext, nextLabel = 'Suivant' }: PanelProps) {
+export function RatingPanel({ auto, value, description, onChange, onNext, nextLabel = 'Suivant' }: PanelProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -46,7 +47,7 @@ export function RatingPanel({ auto, value, result, onChange, onNext, nextLabel =
     <div className="rating-panel">
       <p className="rating-summary">
         <RatingChip rating={value} />
-        <span className="muted">{describeResult(result)}</span>
+        <span className="muted">{description}</span>
       </p>
       <div className="rating-buttons" role="group" aria-label="Corriger la note">
         {RATINGS.map((r, i) => (

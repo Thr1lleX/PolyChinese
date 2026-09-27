@@ -40,3 +40,6 @@ export function gradeWriting(r: WritingResult): Rating {
   }
   return r.mistakes <= hardMistakeLimit(r.strokeCount) ? 'hard' : 'again';
 }
+
+/** Note FSRS (1 = Raté … 4 = Facile). */
+export const GRADE: Record<Rating, 1 | 2 | 3 | 4> = { again: 1, hard: 2, good: 3, easy: 4 };

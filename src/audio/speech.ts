@@ -1,4 +1,5 @@
 // Lecture audio par la synthèse vocale du navigateur (voix chinoises zh-CN).
+import { useSyncExternalStore } from 'react';
 
 let cachedVoice: SpeechSynthesisVoice | null | undefined;
 
@@ -35,4 +36,23 @@ if (speechAvailable()) {
   speechSynthesis.addEventListener?.('voiceschanged', () => {
     cachedVoice = pickVoice() ?? undefined;
   });
+}
+
+/**
+ * Voix chinoise disponible, mise à jour quand le navigateur finit de charger ses voix
+ * (elles arrivent souvent après le premier affichage, notamment sur Android).
+ */
+export function useChineseVoice(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (!speechAvailable()) return () => {};
+      const handler = () => {
+        cachedVoice = pickVoice() ?? undefined;
+        onChange();
+      };
+      speechSynthesis.addEventListener?.('voiceschanged', handler);
+      return () => speechSynthesis.removeEventListener?.('voiceschanged', handler);
+    },
+    hasChineseVoice,
+  );
 }

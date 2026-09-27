@@ -4,6 +4,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { App } from './App';
 import './styles.css';
 import './styles-lists.css';
+import './styles-session.css';
 
 // Service worker : mise en cache hors ligne et mise à jour automatique
 registerSW({ immediate: true });

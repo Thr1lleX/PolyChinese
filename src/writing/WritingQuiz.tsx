@@ -45,7 +45,7 @@ export function WritingQuiz({ entry, mode, onDone, hintAfterMisses, size: sizePr
   const [finished, setFinished] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const size = sizeProp ?? Math.min(320, window.innerWidth - 48);
+  const size = sizeProp ?? Math.max(160, Math.min(320, window.innerWidth - 48));
   const hintAfter = hintAfterMisses ?? settings.hintAfterMisses;
   const leniency = LENIENCY[effectiveTolerance(settings.tolerance)];
 

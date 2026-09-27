@@ -444,6 +444,12 @@ Chaque étape produit une version **utilisable et testable par l'utilisateur**.
 - Contexte de séance (Écoute seule / Silence ; « Parler » activé à l'étape 4), reprise de séance interrompue, pause automatique.
 - Accueil, calendrier, série et jokers, statistiques de base, export/import.
 - **Critères** : une séance de 25 min tient en 25 min (± 3), sur plusieurs jours d'utilisation réelle. Une séance interrompue (fermeture de l'appli, téléphone verrouillé) reprend exactement à la carte suivante.
+- ✅ Livré. Précisions de mise en œuvre :
+  - « Parler » se comporte comme « Écoute seule » jusqu'à l'étape 4 (pas encore de cartes de prononciation).
+  - Les cartes « en apprentissage » (réponse ratée ou nouvelle carte) reviennent quelques cartes plus loin dans la même séance.
+  - Première carte d'un nouvel élément : écriture pour un caractère, sens pour un mot ; les autres cartes arrivent les jours suivants.
+  - Quand les nouveautés du jour sont faites, l'accueil propose « + 5 nouveautés de plus ».
+  - Les réglages restent en localStorage (inclus dans la sauvegarde JSON).
 
 ### Étape 4 — Oral
 - Prototype d'analyse des tons d'abord : calibrage, enregistrement, courbe, classification. **Point de décision** : si la fiabilité est suffisante (objectif ≥ 85 % d'accord avec l'oreille de l'utilisateur sur des mots de 1 à 2 syllabes), carte prononciation notée automatiquement. Sinon, auto-évaluation avec courbe indicative.

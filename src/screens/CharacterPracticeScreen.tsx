@@ -60,7 +60,7 @@ export function CharacterPracticeScreen() {
       <WritingPrompt entry={entry} reveal={phase !== 'memory' || !!result} />
 
       {phase === 'watch' ? (
-        <CharacterAnimation entry={entry} size={Math.min(320, window.innerWidth - 48)} />
+        <CharacterAnimation entry={entry} size={Math.max(160, Math.min(320, window.innerWidth - 48))} />
       ) : (
         <WritingQuiz
           key={`${phase}-${attempt}`}
