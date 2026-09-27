@@ -1,0 +1,34 @@
+{
+  "name": "polychinese",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p . && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "data:download": "node scripts/download-data.ts",
+    "data:prepare": "node scripts/prepare-data.ts"
+  },
+  "dependencies": {
+    "dexie": "^4.4.6",
+    "hanzi-writer": "^3.7.3",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vite-pwa/assets-generator": "^1.0.4",
+    "@vitejs/plugin-react": "^6.1.1",
+    "fflate": "^0.8.3",
+    "hanzi-writer-data": "^2.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^5.0.2"
+  }
+}
