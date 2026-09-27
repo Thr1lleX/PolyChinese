@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import { Definitions, SpeakButton } from '../ui/Definitions';
+import { ItemStatus } from '../ui/ItemStatus';
 import { Pinyin, ToneHanzi } from '../ui/Pinyin';
 
 export function WordScreen() {
@@ -49,6 +50,8 @@ export function WordScreen() {
           </span>
         )}
       </div>
+
+      <ItemStatus kind="word" text={entry.w} />
 
       <section>
         <h2>Caractères</h2>

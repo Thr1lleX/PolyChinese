@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import type { Catalog } from '../data/catalog';
 import type { CharEntry } from '../data/types';
+import { useItemsMap } from '../db/hooks';
+import type { UserItem } from '../db/model';
 import { LENIENCY, TOLERANCE_LABELS, effectiveTolerance, updateSettings, useSettings } from '../settings';
 import { Pinyin } from '../ui/Pinyin';
 import { RatingChip, RatingPanel, describeResult } from '../ui/Rating';
@@ -13,9 +15,10 @@ import { WritingPrompt } from '../ui/WritingPrompt';
 import { RATINGS, RATING_LABELS, gradeWriting, type Rating, type WritingResult } from '../writing/grading';
 import { WritingQuiz } from '../writing/WritingQuiz';
 
-type Source = 'hsk1' | 'hsk2' | 'hsk3' | 'top100' | 'custom';
+type Source = 'mine' | 'hsk1' | 'hsk2' | 'hsk3' | 'top100' | 'custom';
 
 const SOURCE_LABELS: Record<Source, string> = {
+  mine: 'Mes caractères (triés)',
   hsk1: 'Caractères HSK 1',
   hsk2: 'Caractères HSK 2',
   hsk3: 'Caractères HSK 3',
@@ -39,8 +42,13 @@ function shuffle<T>(list: T[]): T[] {
   return a;
 }
 
-function pool(catalog: Catalog, source: Source, custom: string): CharEntry[] {
+function pool(catalog: Catalog, source: Source, custom: string, items?: Map<string, UserItem>): CharEntry[] {
   switch (source) {
+    case 'mine':
+      return [...(items?.values() ?? [])]
+        .filter((it) => it.kind === 'char' && it.triage !== 'pending')
+        .map((it) => catalog.char(it.text))
+        .filter((c): c is CharEntry => !!c);
     case 'hsk1':
     case 'hsk2':
     case 'hsk3': {
@@ -82,7 +90,8 @@ function Setup({ onStart }: { onStart: (queue: CharEntry[]) => void }) {
   const settings = useSettings();
   const [source, setSource] = useState<Source>(() => (localStorage.getItem('polychinese.practiceSource') as Source) ?? 'hsk1');
   const [custom, setCustom] = useState(() => localStorage.getItem('polychinese.practiceCustom') ?? '');
-  const available = useMemo(() => pool(catalog, source, custom), [catalog, source, custom]);
+  const items = useItemsMap();
+  const available = useMemo(() => pool(catalog, source, custom, items), [catalog, source, custom, items]);
 
   const start = () => {
     localStorage.setItem('polychinese.practiceSource', source);

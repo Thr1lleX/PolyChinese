@@ -1,0 +1,266 @@
+/* Étape 2 : éléments, listes, import, tri */
+
+.small { font-size: 0.85rem; }
+.center { text-align: center; justify-self: center; }
+
+.status-dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  flex: none;
+  vertical-align: 0.05em;
+}
+.status-known { background: #2e7d32; }
+.status-fuzzy { background: #ef6c00; }
+.status-relearn { background: #c62828; }
+.status-new { background: transparent; border: 2px solid var(--muted); }
+.status-pending { background: transparent; border: 2px dashed var(--muted); }
+.char-tile {
+  position: relative;
+}
+.char-tile .status-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.result-kind {
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.callout {
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+}
+.actions-row.compact {
+  margin-top: 0.6rem;
+}
+
+.item-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin: 0.4rem 0;
+}
+.item-status .actions-row.compact {
+  margin-top: 0;
+}
+.status-select {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.title-row h1 {
+  margin: 0.4rem 0;
+}
+input[type='text'] {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  min-width: 0;
+}
+button.danger {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.status-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  align-items: center;
+}
+
+.deck-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 0.5rem;
+}
+.deck-card {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  text-decoration: none;
+}
+.deck-card:hover {
+  border-color: var(--accent);
+}
+.deck-name {
+  font-weight: 600;
+}
+.pending-badge {
+  color: var(--accent);
+}
+.mini-progress {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.mini-progress > span {
+  display: block;
+  height: 100%;
+  background: #2e7d32;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+}
+.filter-chips button,
+.chip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.filter-chips button.active,
+.chip-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.3rem;
+  margin: 0.6rem 0;
+}
+.segmented button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.import-preview {
+  padding: 0.7rem 0.9rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+.import-preview p {
+  margin: 0.2rem 0;
+}
+.preview-items {
+  font-size: 1.2rem;
+  max-height: 8.5rem;
+  overflow-y: auto;
+  line-height: 1.7;
+}
+
+.plain-list {
+  list-style: none;
+  padding: 0;
+}
+.plain-list li {
+  margin: 0.3rem 0;
+}
+
+.triage-card {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  min-height: 300px;
+  padding: 1.2rem;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  text-align: center;
+  cursor: pointer;
+  /* Glissement horizontal géré par l'appli, défilement vertical laissé au navigateur */
+  touch-action: pan-y;
+  user-select: none;
+  transition: border-color 0.15s;
+}
+.triage-card.swipe-right {
+  border-color: #2e7d32;
+}
+.triage-card.swipe-left {
+  border-color: #c62828;
+}
+.triage-hanzi {
+  font-size: 6rem;
+  line-height: 1.1;
+}
+.triage-hanzi.long {
+  font-size: 3.6rem;
+}
+.triage-answer {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: center;
+}
+.triage-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.triage-buttons button {
+  padding: 0.8rem 0.3rem;
+  font-weight: 600;
+}
+.triage-buttons kbd {
+  font-size: 0.7rem;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 0.25rem;
+}
+.triage-buttons .triage-known { border-color: #2e7d32; }
+.triage-buttons .triage-fuzzy { border-color: #ef6c00; }
+.triage-buttons .triage-relearn,
+.triage-buttons .triage-new { border-color: #c62828; }
+
+.footer-links {
+  margin-top: 2rem;
+}
+
+/* Aides clavier seulement avec une souris, aides tactiles seulement au doigt */
+@media (pointer: coarse) {
+  .triage-buttons kbd,
+  .hint-keyboard {
+    display: none;
+  }
+}
+@media (pointer: fine) {
+  .hint-touch {
+    display: none;
+  }
+}

@@ -437,6 +437,7 @@ Chaque étape produit une version **utilisable et testable par l'utilisateur**.
 - Catalogue, recherche, fiches caractère et mot, decks.
 - Import par collage + tri rapide + planification étalée, mots débloqués.
 - **Critère** : les 150 caractères de l'utilisateur sont importés et triés en moins de 10 minutes.
+- ✅ Livré. En plus : tri des mots débloqués et des niveaux HSK (« ce que je connais déjà »), statut modifiable depuis chaque fiche, source « Mes caractères » dans l'entraînement à l'écriture. Les réglages restent en localStorage jusqu'à l'étape 3.
 
 ### Étape 3 — Séances et régularité
 - FSRS, 4 types de cartes non oraux (écriture, sens, pinyin, écoute), composition des séances, anti-avalanche, nouveautés adaptatives.

@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "dexie": "^4.4.6",
+    "dexie-react-hooks": "^4.4.0",
     "hanzi-writer": "^3.7.3",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.4"
+    "react-router-dom": "^7.18.4",
+    "ts-fsrs": "^5.4.2"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

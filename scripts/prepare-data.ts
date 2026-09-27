@@ -14,6 +14,17 @@ const SINGLE_CHAR_WORD_TOP = 3000;
 /** Mots uniquement présents dans CC-CEDICT (sans traduction française) gardés s'ils sont dans ce top SUBTLEX. */
 const EN_ONLY_WORD_TOP = 30000;
 
+/**
+ * Lecture principale forcée quand l'ordre de Make Me a Hanzi ne donne pas la plus courante
+ * (vérifié sur les 500 caractères les plus fréquents).
+ */
+const MAIN_READING_OVERRIDES: Record<string, string> = {
+  吧: 'ba5',
+  得: 'de5',
+  长: 'chang2',
+  只: 'zhi3',
+};
+
 const isHan = (ch: string) => {
   const cp = ch.codePointAt(0)!;
   return (cp >= 0x4e00 && cp <= 0x9fff) || (cp >= 0x3400 && cp <= 0x4dbf);
@@ -234,7 +245,9 @@ for (const h of hsk) {
 const chars: CharEntry[] = [];
 for (const ch of catalogChars) {
   const m = mmah.get(ch)!;
-  let rd = buildReadings(ch, m.pinyin.map(markedToNumeric));
+  // Ordre des lectures : celui de Make Me a Hanzi, sauf corrections manuelles
+  const override = MAIN_READING_OVERRIDES[ch];
+  let rd = buildReadings(ch, [...(override ? [override] : []), ...m.pinyin.map(markedToNumeric)]);
   if (!rd.length) {
     rd = m.pinyin.map((p) => ({ p: markedToNumeric(p), ...(m.definition ? { en: [m.definition] } : {}) }));
   }

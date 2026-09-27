@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import type { CharEntry } from '../data/types';
 import { Definitions, SpeakButton } from '../ui/Definitions';
+import { ItemStatus } from '../ui/ItemStatus';
 import { Pinyin } from '../ui/Pinyin';
 import { CharacterAnimation } from '../writing/CharacterAnimation';
 import { StrokeOrder } from '../writing/StrokeOrder';
@@ -55,6 +56,7 @@ export function CharacterScreen() {
             {entry.h && <span className="tag">HSK {entry.h === 7 ? '7-9' : entry.h}</span>}
             {entry.f && <span className="tag">Fréquence n° {entry.f}</span>}
           </div>
+          <ItemStatus kind="char" text={entry.c} />
           <Link to={`/c/${entry.c}/ecrire`} className="button-link primary">
             ✍ S'entraîner à l'écrire
           </Link>
