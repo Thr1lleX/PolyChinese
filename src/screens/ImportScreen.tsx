@@ -17,23 +17,37 @@ export function ImportScreen() {
   const [text, setText] = useState('');
   const [name, setName] = useState(() => `Import du ${today()}`);
   const [busy, setBusy] = useState(false);
+  const [withChars, setWithChars] = useState(true);
 
   const parsed = useMemo(
     () =>
       kind === 'char'
         ? extractChars(text, (c) => !!catalog.char(c))
-        : extractWords(text, (w) => !!catalog.word(w)),
+        : extractWords(text, (w) => {
+            const entry = catalog.word(w);
+            // Mot sans fréquence connue : rare, sauf s'il est au HSK
+            return entry ? (entry.f ?? (entry.h ? 5000 : 200000)) : undefined;
+          }),
     [kind, text, catalog],
   );
   const already = parsed.found.filter((t) => items?.has(itemKey(kind, t))).length;
   const unit = kind === 'char' ? 'caractère' : 'mot';
   const plural = (n: number) => `${n} ${unit}${n > 1 ? 's' : ''}`;
 
+  const wordChars = useMemo(
+    () => (kind === 'word' ? [...new Set(parsed.found.flatMap((w) => [...w]))].filter((c) => !!catalog.char(c)) : []),
+    [kind, parsed, catalog],
+  );
+
   const submit = async () => {
     setBusy(true);
     const { deckId, pending } = await addToDeck(
       name.trim() || `Import du ${today()}`,
-      parsed.found.map((t) => ({ kind, text: t })),
+      [
+        ...parsed.found.map((t) => ({ kind, text: t })),
+        // Les caractères des mots importés, pour travailler leur écriture
+        ...(kind === 'word' && withChars ? wordChars.map((c) => ({ kind: 'char' as const, text: c })) : []),
+      ],
     );
     navigate(pending > 0 ? `/tri/${deckId}` : `/listes/${deckId}`);
   };
@@ -57,7 +71,7 @@ export function ImportScreen() {
         <p className="muted small">
           {kind === 'char'
             ? 'Chaque caractère chinois distinct du texte est importé.'
-            : 'Une entrée par ligne ou séparée par des virgules ; un texte continu est découpé automatiquement en mots.'}
+            : 'Une entrée par ligne ou séparée par des virgules (学生, 老师, 朋友). Un texte continu (我是学生) est découpé automatiquement en mots. Chaque mot reçoit des cartes de sens, de pinyin et d’écoute.'}
         </p>
 
         <label className="field">
@@ -85,6 +99,18 @@ export function ImportScreen() {
               </p>
             )}
           </div>
+        )}
+
+        {kind === 'word' && wordChars.length > 0 && (
+          <label className="field checkbox">
+            <input type="checkbox" checked={withChars} onChange={(e) => setWithChars(e.target.checked)} />
+            <span>
+              Ajouter aussi leurs {wordChars.length} caractères (cartes d'écriture)
+              {wordChars.some((c) => items?.has(itemKey('char', c))) && (
+                <span className="muted small"> — ceux déjà dans vos éléments gardent leur statut</span>
+              )}
+            </span>
+          </label>
         )}
 
         <button className="primary" disabled={!parsed.found.length || busy} onClick={submit}>

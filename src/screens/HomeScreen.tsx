@@ -5,7 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useChineseVoice } from '../audio/speech';
 import { useCatalog } from '../data/CatalogContext';
 import { db } from '../db/db';
-import { knownChars, useDecks, useItemsMap } from '../db/hooks';
+import { useDecks, useItemsMap, useMasteryMap } from '../db/hooks';
+import { knownCharsFrom } from '../db/mastery';
 import { CONTEXT_LABELS, type SessionContext } from '../db/model';
 import { EXPRESS_MINUTES, planSession, startSession, today } from '../session/sessionService';
 import { updateSettings, useSettings } from '../settings';
@@ -236,13 +237,13 @@ function Regularity() {
 
 function Coverage() {
   const catalog = useCatalog();
-  const items = useItemsMap();
+  const status = useMasteryMap();
   const coverage = useMemo(() => {
-    const known = knownChars(items);
+    const known = knownCharsFrom(status);
     let perMillion = 0;
     for (const c of known) perMillion += catalog.char(c)?.pm ?? 0;
     return { chars: known.size, pct: perMillion / 10000 };
-  }, [catalog, items]);
+  }, [catalog, status]);
   if (!coverage.chars) return null;
   return (
     <section className="coverage">

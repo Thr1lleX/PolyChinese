@@ -59,6 +59,8 @@ export interface CardRecord {
   due: Date;
   /** Nouveauté prioritaire (« à réapprendre ») */
   priority?: boolean;
+  /** Dernière note donnée (1 = Raté … 4 = Facile) */
+  lastRating?: 1 | 2 | 3 | 4;
   suspended?: boolean;
   createdAt: Date;
 }

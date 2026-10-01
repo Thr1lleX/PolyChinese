@@ -1,5 +1,5 @@
 // Déroulé d'une séance (SPEC §9) : cartes, chronomètre actif, pause automatique, reprise, bilan.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { useChineseVoice } from '../audio/speech';
@@ -28,7 +28,11 @@ const formatClock = (ms: number) => {
 };
 
 /** Carte visée par une entrée de la file. */
-function entryCard(entry: ActiveSession['queue'][number]): { cardId: string; itemKey: string; type: CardType } {
+function entryCard(entry: Exclude<ActiveSession['queue'][number], { kind: 'discover' }>): {
+  cardId: string;
+  itemKey: string;
+  type: CardType;
+} {
   const cardId = entry.kind === 'new' ? `${entry.itemKey}|${entry.cardType}` : entry.cardId;
   const [itemKey, type] = cardId.split('|');
   return { cardId, itemKey, type: type as CardType };
@@ -136,46 +140,11 @@ export function SessionScreen() {
   }
 
   const entry = session.queue[session.position];
-  const { cardId, itemKey, type } = entryCard(entry);
-  const types = allowedTypes(session.context, voice);
-  const Card = CARD_COMPONENTS[type];
   const audio = session.context !== 'silent';
-
-  // Carte non disponible (prononciation avant l'étape 4, ou exclue après un changement de contexte) : on passe
-  if (!Card || !types.has(type)) {
-    return (
-      <SkipCard
-        key={session.position}
-        onSkip={async () => {
-          if (busy.current) return;
-          busy.current = true;
-          const updated = { ...session, position: session.position + 1 };
-          await db.sessions.put(updated);
-          advance(updated);
-        }}
-      />
-    );
-  }
-
-  const onRated = async (grade: 1 | 2 | 3 | 4, autoGrade?: 1 | 2 | 3 | 4, detail?: unknown) => {
-    if (busy.current) return;
-    busy.current = true;
-    const updated = await rateCard({
-      session: { ...session, activeMs: session.activeMs },
-      entry,
-      cardId,
-      grade,
-      autoGrade,
-      durationMs: Math.min(120000, performance.now() - cardStart.current),
-      detail,
-    });
-    advance({ ...updated, activeMs: session.activeMs });
-  };
-
   const done = session.results.length;
   const remaining = session.queue.length - session.position;
 
-  return (
+  const frame = (content: ReactNode) => (
     <div className="screen narrow practice session">
       <div className="practice-top">
         <Link to="/">⏸ Pause</Link>
@@ -195,23 +164,77 @@ export function SessionScreen() {
       <div className="progress">
         <div style={{ width: `${(done / Math.max(1, done + remaining)) * 100}%` }} />
       </div>
-
-      {entry.kind === 'new' && discovering ? (
-        <DiscoveryCard
-          key={`d-${session.position}`}
-          itemKey={entry.itemKey}
-          audio={audio}
-          onContinue={async () => {
-            await ensureItem(entry.itemKey, entry.itemKind);
-            cardStart.current = performance.now();
-            setDiscovering(false);
-          }}
-        />
-      ) : (
-        <Card key={`${session.position}-${cardId}`} itemKey={itemKey} audio={audio} onRated={onRated} />
-      )}
+      {content}
     </div>
   );
+
+  /** Avance d'une entrée sans noter (découverte, carte indisponible). */
+  const skip = async () => {
+    if (busy.current) return;
+    busy.current = true;
+    const updated = { ...session, position: session.position + 1 };
+    await db.sessions.put(updated);
+    advance(updated);
+  };
+
+  // Découverte d'un nouvel élément : pas de note, la question viendra quelques cartes plus loin
+  if (entry.kind === 'discover') {
+    return frame(
+      <DiscoveryCard
+        key={`d-${session.position}`}
+        itemKey={entry.itemKey}
+        audio={audio}
+        onContinue={async () => {
+          await ensureItem(entry.itemKey, entry.itemKind);
+          await skip();
+        }}
+      />,
+    );
+  }
+
+  const { cardId, itemKey, type } = entryCard(entry);
+  const types = allowedTypes(session.context, voice);
+  const Card = CARD_COMPONENTS[type];
+
+  // Carte non disponible (prononciation avant l'étape 4, ou exclue après un changement de contexte) : on passe
+  if (!Card || !types.has(type)) return <SkipCard key={session.position} onSkip={skip} />;
+
+  // Séances créées avant l'espacement des nouveautés : découverte juste avant la question
+  const legacyDiscovery =
+    entry.kind === 'new' &&
+    !session.queue.slice(0, session.position).some((e) => e.kind === 'discover' && e.itemKey === entry.itemKey);
+
+  const onRated = async (grade: 1 | 2 | 3 | 4, autoGrade?: 1 | 2 | 3 | 4, detail?: unknown) => {
+    if (busy.current) return;
+    busy.current = true;
+    const updated = await rateCard({
+      session: { ...session, activeMs: session.activeMs },
+      entry,
+      cardId,
+      grade,
+      autoGrade,
+      durationMs: Math.min(120000, performance.now() - cardStart.current),
+      detail,
+    });
+    advance({ ...updated, activeMs: session.activeMs });
+  };
+
+  if (entry.kind === 'new' && legacyDiscovery && discovering) {
+    return frame(
+      <DiscoveryCard
+        key={`d-${session.position}`}
+        itemKey={entry.itemKey}
+        audio={audio}
+        onContinue={async () => {
+          await ensureItem(entry.itemKey, entry.itemKind);
+          cardStart.current = performance.now();
+          setDiscovering(false);
+        }}
+      />,
+    );
+  }
+
+  return frame(<Card key={`${session.position}-${cardId}`} itemKey={itemKey} audio={audio} onRated={onRated} />);
 }
 
 /** Passe automatiquement une carte indisponible dans ce contexte. */

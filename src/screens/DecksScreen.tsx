@@ -3,8 +3,9 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import { unlockedWords } from '../data/unlocked';
-import { knownChars, useDecks, useItemsMap } from '../db/hooks';
-import { TRIAGE_LABELS, type TriageStatus } from '../db/model';
+import { useDecks, useItemsMap, useMasteryMap } from '../db/hooks';
+import { MASTERY_LABELS, MASTERY_ORDER, knownCharsFrom, type Mastery } from '../db/mastery';
+import { StatusDot } from '../ui/ItemStatus';
 
 export const HSK_LEVELS = [1, 2, 3, 4, 5, 6, 7];
 export const hskLabel = (level: number) => (level === 7 ? 'HSK 7-9' : `HSK ${level}`);
@@ -14,13 +15,14 @@ export function DecksScreen() {
   const decks = useDecks();
   const items = useItemsMap();
 
+  const status = useMasteryMap();
   const statusCounts = useMemo(() => {
-    const counts = new Map<TriageStatus, number>();
-    for (const it of items?.values() ?? []) counts.set(it.triage, (counts.get(it.triage) ?? 0) + 1);
+    const counts = new Map<Mastery, number>();
+    for (const m of status?.values() ?? []) counts.set(m, (counts.get(m) ?? 0) + 1);
     return counts;
-  }, [items]);
+  }, [status]);
 
-  const known = useMemo(() => knownChars(items), [items]);
+  const known = useMemo(() => knownCharsFrom(status), [status]);
   const unlockedCount = useMemo(
     () => (items ? unlockedWords(catalog.words, known, new Set(items.keys())).length : 0),
     [catalog, known, items],
@@ -50,13 +52,11 @@ export function DecksScreen() {
       {items.size > 0 ? (
         <p className="status-summary">
           {items.size} élément{items.size > 1 ? 's' : ''} :{' '}
-          {(['known', 'fuzzy', 'relearn', 'new', 'pending'] as const)
-            .filter((s) => statusCounts.get(s))
-            .map((s) => (
-              <span key={s}>
-                <span className={`status-dot status-${s}`} /> {statusCounts.get(s)} {TRIAGE_LABELS[s].toLowerCase()}
-              </span>
-            ))}
+          {MASTERY_ORDER.filter((s) => statusCounts.get(s)).map((s) => (
+            <span key={s}>
+              <StatusDot status={s} /> {statusCounts.get(s)} {MASTERY_LABELS[s].toLowerCase()}
+            </span>
+          ))}
         </p>
       ) : (
         <div className="callout">

@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { extractChars, extractWords } from './parse';
 
-const words = new Set(['我', '是', '学生', '中国', '中国人', '老师', '你好', '好']);
-const isWord = (w: string) => words.has(w);
+// Rangs de fréquence fictifs ; « 我是 » est une entrée rare du dictionnaire
+const ranks = new Map([
+  ['我', 2], ['是', 4], ['学生', 1022], ['中国', 1406], ['中国人', 3000], ['老师', 900], ['你好', 2021], ['好', 15],
+  ['我是', 500000], ['学', 2000], ['生', 3000],
+]);
+const isWord = (w: string) => ranks.get(w);
 
 describe('extractChars', () => {
   it('garde les caractères chinois distincts, ignore le reste', () => {
@@ -21,8 +25,9 @@ describe('extractWords', () => {
     expect(extractWords('学生, 老师\n中国人、你好', isWord).found).toEqual(['学生', '老师', '中国人', '你好']);
   });
 
-  it('découpe un texte continu par correspondance la plus longue', () => {
+  it('découpe un texte continu en préférant les mots fréquents', () => {
     expect(extractWords('我是中国人', isWord).found).toEqual(['我', '是', '中国人']);
+    expect(extractWords('我是学生', isWord).found).toEqual(['我', '是', '学生']);
   });
 
   it('signale les fragments inconnus', () => {

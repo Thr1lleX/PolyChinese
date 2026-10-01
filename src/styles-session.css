@@ -240,3 +240,9 @@ input[type='number'] {
   background: var(--surface);
   color: var(--ink);
 }
+
+.reading-note {
+  font-size: 0.85em;
+  color: var(--muted);
+  font-style: italic;
+}

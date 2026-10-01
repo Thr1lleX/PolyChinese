@@ -1,7 +1,7 @@
 import { useCatalog } from '../data/CatalogContext';
 import type { CharEntry } from '../data/types';
 import { Definitions, SpeakButton } from './Definitions';
-import { Pinyin } from './Pinyin';
+import { Pinyin, ReadingNote } from './Pinyin';
 
 /**
  * Consigne d'une carte d'écriture : pinyin, sens et mot de contexte où le caractère est masqué
@@ -32,7 +32,9 @@ export function WritingPrompt({ entry, reveal = false }: { entry: CharEntry; rev
               ),
             )}
           </span>{' '}
-          <Pinyin numeric={context.rd[0].p} /> <span className="muted">· {context.rd[0].fr?.slice(0, 2).join(' ; ')}</span>
+          <Pinyin numeric={context.rd[0].p} />{' '}
+          {reveal && <ReadingNote syllable={catalog.syllableIn(context, entry.c)} main={reading.p} />}{' '}
+          <span className="muted">· {context.rd[0].fr?.slice(0, 2).join(' ; ')}</span>
         </p>
       )}
     </div>

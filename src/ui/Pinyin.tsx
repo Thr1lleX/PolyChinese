@@ -28,3 +28,16 @@ export function ToneHanzi({ text, numeric, className }: { text: string; numeric:
     </span>
   );
 }
+
+/**
+ * Signale qu'un caractère se prononce autrement dans ce mot que sa lecture principale
+ * (和 hé, mais 暖和 nuǎnhuo → « ici : huo »).
+ */
+export function ReadingNote({ syllable, main }: { syllable: string | undefined; main: string }) {
+  if (!syllable || syllable === main.toLowerCase()) return null;
+  return (
+    <span className="reading-note" title="Le caractère se prononce autrement dans ce mot">
+      (ici : <Pinyin numeric={syllable} />)
+    </span>
+  );
+}

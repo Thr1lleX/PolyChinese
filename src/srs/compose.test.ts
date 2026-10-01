@@ -65,7 +65,24 @@ describe('composeSession', () => {
     const newCandidates = Array.from({ length: 20 }, (_, i) => ({ itemKey: `w:${i}`, kind: 'word' as const }));
     const r = composeSession(input({ newCandidates, newItemsAllowed: 5 }));
     expect(r.newItems).toBe(5);
-    expect(r.queue.every((q) => q.kind === 'new' && q.cardType === 'meaning')).toBe(true);
+    expect(r.queue.filter((q) => q.kind === 'discover')).toHaveLength(5);
+    expect(r.queue.filter((q) => q.kind === 'new' && q.cardType === 'meaning')).toHaveLength(5);
+  });
+
+  it('la première question arrive au moins 3 cartes après la découverte', () => {
+    const cards = Array.from({ length: 6 }, (_, i) => card(`c:r${i}`, 'meaning'));
+    for (const [nNew, withReviews] of [[1, false], [3, false], [8, false], [8, true], [2, true]] as const) {
+      const newCandidates = Array.from({ length: nNew }, (_, i) => ({ itemKey: `w:${i}`, kind: 'word' as const }));
+      const { queue } = composeSession(input({ cards: withReviews ? cards : [], newCandidates, newItemsAllowed: nNew }));
+      for (const [j, q] of queue.entries()) {
+        if (q.kind !== 'new') continue;
+        const i = queue.findIndex((d) => d.kind === 'discover' && d.itemKey === q.itemKey);
+        expect(i).toBeGreaterThanOrEqual(0);
+        // Écart maximal possible : les autres cartes de la séance (autres nouveautés, révisions)
+        const others = nNew - 1 + (withReviews ? cards.length : 0);
+        expect(j - i - 1).toBeGreaterThanOrEqual(Math.min(3, others));
+      }
+    }
   });
 
   it('séance express : révisions uniquement', () => {

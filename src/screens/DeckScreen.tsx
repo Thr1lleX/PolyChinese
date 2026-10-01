@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import type { CharEntry, WordEntry } from '../data/types';
-import { useDeck, useItemsMap } from '../db/hooks';
-import { TRIAGE_LABELS, parseItemKey, type TriageStatus } from '../db/model';
+import { useDeck, useItemsMap, useMasteryMap } from '../db/hooks';
+import { MASTERY_LABELS, MASTERY_ORDER, type Mastery } from '../db/mastery';
+import { parseItemKey } from '../db/model';
+import { StatusDot } from '../ui/ItemStatus';
 import { deleteDeck, renameDeck } from '../db/repo';
 import { CharGrid, WordRows } from '../ui/ItemLists';
 
@@ -14,17 +16,18 @@ export function DeckScreen() {
   const items = useItemsMap();
   const catalog = useCatalog();
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<TriageStatus | 'all'>('all');
+  const [filter, setFilter] = useState<Mastery | 'all'>('all');
+  const status = useMasteryMap();
   const [editing, setEditing] = useState(false);
 
-  if (deck === undefined || !items) return null;
+  if (deck === undefined || !items || !status) return null;
   if (deck === null) return <p className="screen">Liste introuvable.</p>;
 
-  const keys = deck.itemKeys.filter((k) => filter === 'all' || items.get(k)?.triage === filter);
+  const keys = deck.itemKeys.filter((k) => filter === 'all' || status.get(k) === filter);
   const chars = keys.map(parseItemKey).filter((p) => p.kind === 'char').map((p) => catalog.char(p.text)).filter((c): c is CharEntry => !!c);
   const words = keys.map(parseItemKey).filter((p) => p.kind === 'word').map((p) => catalog.word(p.text)).filter((w): w is WordEntry => !!w);
   const pending = deck.itemKeys.filter((k) => items.get(k)?.triage === 'pending').length;
-  const present = new Set(deck.itemKeys.map((k) => items.get(k)?.triage).filter(Boolean));
+  const present = new Set(deck.itemKeys.map((k) => status.get(k)).filter(Boolean));
 
   return (
     <div className="screen">
@@ -68,25 +71,23 @@ export function DeckScreen() {
         <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
           Tous ({deck.itemKeys.length})
         </button>
-        {(['known', 'fuzzy', 'relearn', 'new', 'pending'] as const)
-          .filter((s) => present.has(s))
-          .map((s) => (
-            <button key={s} className={filter === s ? 'active' : ''} onClick={() => setFilter(s)}>
-              <span className={`status-dot status-${s}`} /> {TRIAGE_LABELS[s]}
-            </button>
-          ))}
+        {MASTERY_ORDER.filter((s) => present.has(s)).map((s) => (
+          <button key={s} className={filter === s ? 'active' : ''} onClick={() => setFilter(s)}>
+            <StatusDot status={s} /> {MASTERY_LABELS[s]}
+          </button>
+        ))}
       </div>
 
       {chars.length > 0 && (
         <section>
           <h2>Caractères ({chars.length})</h2>
-          <CharGrid chars={chars} items={items} />
+          <CharGrid chars={chars} status={status} />
         </section>
       )}
       {words.length > 0 && (
         <section>
           <h2>Mots ({words.length})</h2>
-          <WordRows words={words} items={items} />
+          <WordRows words={words} status={status} />
         </section>
       )}
 

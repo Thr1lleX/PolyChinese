@@ -7,7 +7,9 @@ export type QueueEntry =
   | { kind: 'review'; cardId: string }
   /** Nouvelle carte d'un élément déjà commencé (carte « sœur ») */
   | { kind: 'sister'; cardId: string }
-  /** Nouvel élément : fiche de découverte puis première carte */
+  /** Fiche de découverte d'un nouvel élément (pas de note) */
+  | { kind: 'discover'; itemKey: string; itemKind: ItemKind }
+  /** Première carte d'un nouvel élément, quelques cartes après sa découverte */
   | { kind: 'new'; itemKey: string; itemKind: ItemKind; cardType: CardType };
 
 /** Durées par défaut d'une carte (ms), remplacées par les moyennes réelles dès qu'il y a un historique. */
@@ -24,6 +26,46 @@ export const DISCOVERY_MS = 20000;
 
 /** Part du temps réservée aux révisions quand des nouveautés sont prévues. */
 const REVIEW_SHARE = 0.7;
+
+/** Nombre minimal de cartes entre la découverte d'un élément et sa première question. */
+export const MIN_NEW_GAP = 3;
+/** Nombre de nouveautés découvertes avant d'être interrogées (apprentissage par petits lots). */
+const NEW_BATCH = 4;
+/** Part des révisions faites avant la première nouveauté. */
+const REVIEWS_FIRST = 0.3;
+
+interface NewSelection {
+  itemKey: string;
+  itemKind: ItemKind;
+  cardType: CardType;
+}
+
+/**
+ * Place les nouveautés dans la séance : découverte par petits lots, puis question sur chaque élément
+ * au moins MIN_NEW_GAP cartes plus tard, en intercalant les révisions. Évite de « recracher »
+ * une réponse lue cinq secondes plus tôt.
+ */
+export function arrangeQueue(filler: QueueEntry[], fresh: NewSelection[]): QueueEntry[] {
+  const out: QueueEntry[] = [];
+  let f = Math.ceil(filler.length * REVIEWS_FIRST);
+  out.push(...filler.slice(0, f));
+  const pending: { entry: QueueEntry; readyAt: number }[] = [];
+  let n = 0;
+  while (f < filler.length || n < fresh.length || pending.length) {
+    if (pending.length && pending[0].readyAt <= out.length) {
+      out.push(pending.shift()!.entry);
+    } else if (n < fresh.length && pending.length < NEW_BATCH) {
+      const x = fresh[n++];
+      out.push({ kind: 'discover', itemKey: x.itemKey, itemKind: x.itemKind });
+      pending.push({ entry: { kind: 'new', ...x }, readyAt: out.length + MIN_NEW_GAP });
+    } else if (f < filler.length) {
+      out.push(filler[f++]);
+    } else {
+      out.push(pending.shift()!.entry);
+    }
+  }
+  return out;
+}
 
 export interface ComposeInput {
   now: Date;
@@ -118,7 +160,8 @@ export function composeSession(input: ComposeInput): ComposeResult {
   }
   const postponed = due.filter((c) => !reviews.includes(c) && !selectedItems.has(c.itemKey)).length;
 
-  const queue: QueueEntry[] = interleave(reviews, random).map((c) => ({ kind: 'review', cardId: c.id }));
+  const filler: QueueEntry[] = interleave(reviews, random).map((c) => ({ kind: 'review', cardId: c.id }));
+  const fresh: NewSelection[] = [];
   let sisters = 0;
   let newItems = 0;
 
@@ -137,7 +180,7 @@ export function composeSession(input: ComposeInput): ComposeResult {
       if (selectedItems.has(c.itemKey)) continue;
       const cost = input.cardMs[c.type];
       if (used + cost > input.budgetMs) continue;
-      queue.push({ kind: 'sister', cardId: c.id });
+      filler.push({ kind: 'sister', cardId: c.id });
       selectedItems.add(c.itemKey);
       used += cost;
       sisters++;
@@ -151,7 +194,7 @@ export function composeSession(input: ComposeInput): ComposeResult {
         const cardType = firstCardType(cand.kind, input.allowedTypes);
         const cost = DISCOVERY_MS + input.cardMs[cardType];
         if (used + cost > input.budgetMs) break;
-        queue.push({ kind: 'new', itemKey: cand.itemKey, itemKind: cand.kind, cardType });
+        fresh.push({ itemKey: cand.itemKey, itemKind: cand.kind, cardType });
         selectedItems.add(cand.itemKey);
         used += cost;
         newItems++;
@@ -159,6 +202,7 @@ export function composeSession(input: ComposeInput): ComposeResult {
     }
   }
 
+  const queue = arrangeQueue(filler, fresh);
   return { queue, reviews: reviews.length, sisters, newItems, estimatedMs: used, postponed, backlog };
 }
 

@@ -3,7 +3,7 @@ import { useCatalog } from '../data/CatalogContext';
 import type { CharEntry } from '../data/types';
 import { Definitions, SpeakButton } from '../ui/Definitions';
 import { ItemStatus } from '../ui/ItemStatus';
-import { Pinyin } from '../ui/Pinyin';
+import { Pinyin, ReadingNote } from '../ui/Pinyin';
 import { CharacterAnimation } from '../writing/CharacterAnimation';
 import { StrokeOrder } from '../writing/StrokeOrder';
 
@@ -82,7 +82,10 @@ export function CharacterScreen() {
                 <Link to={`/w/${w.w}`} className="result">
                   <span className="hanzi result-hanzi">{w.w}</span>
                   <span className="result-body">
-                    <Pinyin numeric={w.rd[0].p} />
+                    <span>
+                      <Pinyin numeric={w.rd[0].p} />{' '}
+                      <ReadingNote syllable={catalog.syllableIn(w, entry.c)} main={entry.rd[0].p} />
+                    </span>
                     <Definitions reading={w.rd[0]} max={2} />
                   </span>
                 </Link>

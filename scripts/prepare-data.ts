@@ -23,6 +23,12 @@ const MAIN_READING_OVERRIDES: Record<string, string> = {
   得: 'de5',
   长: 'chang2',
   只: 'zhi3',
+  谁: 'shei2', // « shuí » est la variante littéraire
+  罗: 'luo2',
+  佛: 'fo2',
+  茄: 'qie2',
+  似: 'si4',
+  甚: 'shen4',
 };
 
 const isHan = (ch: string) => {
@@ -251,6 +257,8 @@ for (const ch of catalogChars) {
   if (!rd.length) {
     rd = m.pinyin.map((p) => ({ p: markedToNumeric(p), ...(m.definition ? { en: [m.definition] } : {}) }));
   }
+  // Un caractère isolé n'est pas un nom propre : 佛 « Fo2 » -> « fo2 »
+  rd = rd.map((r) => ({ ...r, p: r.p.toLowerCase() }));
   const strokes = JSON.parse(readFileSync(strokeFile(ch), 'utf8')) as { strokes: string[] };
   const entry: CharEntry = { c: ch, rd, n: strokes.strokes.length, r: m.radical, d: m.decomposition, sh: 0 };
   const freq = charRank.get(ch);

@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import { unlockedWords } from '../data/unlocked';
-import { knownChars, useItemsMap } from '../db/hooks';
+import { useItemsMap, useMasteryMap } from '../db/hooks';
+import { knownCharsFrom } from '../db/mastery';
 import { addToDeck } from '../db/repo';
 import { WordRows } from '../ui/ItemLists';
 import { UNLOCKED_DECK_NAME } from './TriageScreen';
@@ -17,7 +18,8 @@ export function UnlockedScreen() {
   const navigate = useNavigate();
   const [hskOnly, setHskOnly] = useState(false);
 
-  const known = useMemo(() => knownChars(items), [items]);
+  const status = useMasteryMap();
+  const known = useMemo(() => knownCharsFrom(status), [status]);
   const words = useMemo(
     () => (items ? unlockedWords(catalog.words, known, new Set(items.keys()), { hskOnly }) : []),
     [catalog, known, items, hskOnly],
@@ -70,7 +72,7 @@ export function UnlockedScreen() {
               </div>
             </div>
           )}
-          <WordRows words={words.slice(0, SHOWN)} items={items} />
+          <WordRows words={words.slice(0, SHOWN)} status={status} />
           {words.length > SHOWN && <p className="muted">… et {words.length - SHOWN} autres.</p>}
         </>
       )}

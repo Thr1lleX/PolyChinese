@@ -4,11 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import { unlockedWords } from '../data/unlocked';
-import { knownChars, useDeck, useItemsMap } from '../db/hooks';
+import { useDeck, useItemsMap, useMasteryMap } from '../db/hooks';
+import { knownCharsFrom } from '../db/mastery';
 import { TRIAGE_LABELS, parseItemKey, type TriageStatus } from '../db/model';
 import { setTriage } from '../db/repo';
 import { Definitions, SpeakButton } from '../ui/Definitions';
-import { Pinyin } from '../ui/Pinyin';
+import { Pinyin, ReadingNote } from '../ui/Pinyin';
 
 export const UNLOCKED_DECK_NAME = 'Mots débloqués';
 
@@ -18,6 +19,7 @@ export function TriageScreen() {
   const { deckId = '' } = useParams();
   const deck = useDeck(Number(deckId));
   const items = useItemsMap();
+  const status = useMasteryMap();
   const catalog = useCatalog();
   const [history, setHistory] = useState<string[]>([]);
 
@@ -43,7 +45,7 @@ export function TriageScreen() {
       const t = items.get(k)?.triage;
       if (t) counts.set(t, (counts.get(t) ?? 0) + 1);
     }
-    const known = knownChars(items);
+    const known = knownCharsFrom(status);
     const owned = new Set(items.keys());
     const unlocked = unlockedWords(catalog.words, known, owned);
     return (
@@ -205,7 +207,8 @@ function TriageCard({
             <Definitions reading={reading} max={4} />
             {context && (
               <p className="muted">
-                <span className="hanzi">{context.w}</span> <Pinyin numeric={context.rd[0].p} /> · {context.rd[0].fr?.[0]}
+                <span className="hanzi">{context.w}</span> <Pinyin numeric={context.rd[0].p} />{' '}
+                <ReadingNote syllable={catalog.syllableIn(context, text)} main={reading.p} /> · {context.rd[0].fr?.[0]}
               </p>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
+import { buildMasteryMap, type Mastery } from './mastery';
 import type { Deck, UserItem } from './model';
 
 /** Tous les éléments de l'utilisateur, indexés par clé (undefined pendant le chargement). */
@@ -20,11 +21,7 @@ export function useDeck(id: number): Deck | undefined | null {
   return useLiveQuery(async () => (await db.decks.get(id)) ?? null, [id]);
 }
 
-/** Caractères considérés comme connus (triés « connu » ou « à peu près »). */
-export function knownChars(items: Map<string, UserItem> | undefined): Set<string> {
-  const set = new Set<string>();
-  for (const it of items?.values() ?? []) {
-    if (it.kind === 'char' && (it.triage === 'known' || it.triage === 'fuzzy')) set.add(it.text);
-  }
-  return set;
+/** Statut d'apprentissage de chaque élément, recalculé à chaque révision (voir mastery.ts). */
+export function useMasteryMap(): Map<string, Mastery> | undefined {
+  return useLiveQuery(async () => buildMasteryMap(await db.items.toArray(), await db.cards.toArray()), []);
 }

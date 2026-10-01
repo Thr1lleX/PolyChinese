@@ -47,12 +47,28 @@ export class Catalog {
   }
 
   /**
-   * Mot courant servant de contexte à un caractère (« 学 dans 学生 ») :
-   * court, traduit en français, de préférence du HSK.
+   * Mot courant servant de contexte à un caractère (« 学 dans 学生 ») : court, traduit en français,
+   * de préférence du HSK, et où le caractère garde sa prononciation principale
+   * (和 → 和平 hépíng plutôt que 暖和 nuǎnhuo).
    */
   contextWord(c: string): WordEntry | undefined {
     const candidates = this.wordsWithChar(c, 40).filter((w) => w.w.length <= 3 && w.rd[0].fr?.length);
-    return candidates.find((w) => w.h && w.h <= 4) ?? candidates[0];
+    const sameReading = candidates.filter((w) => this.syllableIn(w, c) === this.char(c)?.rd[0].p.toLowerCase());
+    return (
+      sameReading.find((w) => w.h && w.h <= 4) ??
+      sameReading[0] ??
+      candidates.find((w) => w.h && w.h <= 4) ??
+      candidates[0]
+    );
+  }
+
+  /** Syllabe (pinyin numérique, minuscules) du caractère `c` dans le mot, si l'alignement est possible. */
+  syllableIn(word: WordEntry, c: string): string | undefined {
+    const chars = [...word.w];
+    const syllables = word.rd[0].p.toLowerCase().split(/\s+/);
+    if (chars.length !== syllables.length) return undefined;
+    const i = chars.indexOf(c);
+    return i >= 0 ? syllables[i] : undefined;
   }
 
   /** Caractères dont la décomposition contient `component`, les plus fréquents d'abord. */

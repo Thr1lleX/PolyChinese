@@ -2,8 +2,8 @@ import { useDeferredValue, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
 import type { SearchResult } from '../data/catalog';
-import { useItemsMap } from '../db/hooks';
-import type { UserItem } from '../db/model';
+import { useMasteryMap } from '../db/hooks';
+import type { Mastery } from '../db/mastery';
 import { Definitions } from '../ui/Definitions';
 import { CharGrid } from '../ui/ItemLists';
 import { StatusDot } from '../ui/ItemStatus';
@@ -16,7 +16,7 @@ export function SearchScreen() {
   const query = params.get('q') ?? '';
   const deferred = useDeferredValue(query);
   const results = useMemo(() => catalog.search(deferred), [catalog, deferred]);
-  const items = useItemsMap();
+  const status = useMasteryMap();
 
   return (
     <div className="screen">
@@ -31,7 +31,7 @@ export function SearchScreen() {
       />
 
       {query ? (
-        <SearchResults results={results} items={items} />
+        <SearchResults results={results} status={status} />
       ) : (
         <>
           <section>
@@ -46,7 +46,7 @@ export function SearchScreen() {
           </section>
           <section>
             <h2>Les 120 caractères les plus fréquents</h2>
-            <CharGrid chars={catalog.chars.slice(0, 120)} items={items} />
+            <CharGrid chars={catalog.chars.slice(0, 120)} status={status} />
           </section>
         </>
       )}
@@ -54,7 +54,7 @@ export function SearchScreen() {
   );
 }
 
-function SearchResults({ results, items }: { results: SearchResult[]; items?: Map<string, UserItem> }) {
+function SearchResults({ results, status }: { results: SearchResult[]; status?: Map<string, Mastery> }) {
   if (!results.length) return <p className="muted">Aucun résultat.</p>;
   return (
     <ul className="result-list">
@@ -70,7 +70,7 @@ function SearchResults({ results, items }: { results: SearchResult[]; items?: Ma
                 <Definitions reading={reading} max={3} />
               </span>
               <span className="result-kind">
-                <StatusDot status={items?.get(`${r.kind === 'char' ? 'c' : 'w'}:${text}`)?.triage} />
+                <StatusDot status={status?.get(`${r.kind === 'char' ? 'c' : 'w'}:${text}`)} />
                 {r.kind === 'char' ? 'caractère' : 'mot'}
               </span>
             </Link>

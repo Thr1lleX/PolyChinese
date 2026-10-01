@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useCatalog } from '../data/CatalogContext';
-import { useItemsMap } from '../db/hooks';
+import { useItemsMap, useMasteryMap } from '../db/hooks';
 import { itemKey } from '../db/model';
 import { addToDeck } from '../db/repo';
 import { CharGrid, WordRows } from '../ui/ItemLists';
@@ -13,6 +13,7 @@ export function HskScreen() {
   const level = Number(levelParam);
   const catalog = useCatalog();
   const items = useItemsMap();
+  const status = useMasteryMap();
   const navigate = useNavigate();
   const [tab, setTab] = useState<'char' | 'word'>('char');
 
@@ -55,7 +56,7 @@ export function HskScreen() {
         </div>
       )}
 
-      {tab === 'char' ? <CharGrid chars={chars} items={items} /> : <WordRows words={words} items={items} />}
+      {tab === 'char' ? <CharGrid chars={chars} status={status} /> : <WordRows words={words} status={status} />}
     </div>
   );
 }

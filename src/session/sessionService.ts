@@ -3,7 +3,7 @@ import { State, type Grade } from 'ts-fsrs';
 import type { Catalog } from '../data/catalog';
 import { unlockedWords } from '../data/unlocked';
 import { db, requestPersistence } from '../db/db';
-import { knownChars } from '../db/hooks';
+import { buildMasteryMap, knownCharsFrom } from '../db/mastery';
 import { itemKey, type ActiveSession, type CardRecord, type CardType, type ItemKind, type SessionContext } from '../db/model';
 import { addToDeck } from '../db/repo';
 import { getSettings } from '../settings';
@@ -52,9 +52,9 @@ export async function cardDurations(): Promise<Record<CardType, number>> {
  */
 async function newCandidates(catalog: Catalog, limit = 40): Promise<{ itemKey: string; kind: ItemKind }[]> {
   const items = new Map((await db.items.toArray()).map((it) => [it.key, it]));
-  const startedKeys = new Set(
-    (await db.cards.filter((c) => c.fsrs.state !== State.New).toArray()).map((c) => c.itemKey),
-  );
+  const cards = await db.cards.toArray();
+  const startedKeys = new Set(cards.filter((c) => c.fsrs.state !== State.New).map((c) => c.itemKey));
+  const known = knownCharsFrom(buildMasteryMap([...items.values()], cards));
   const out: { itemKey: string; kind: ItemKind }[] = [];
   const push = (key: string, kind: ItemKind) => {
     if (out.length < limit && !startedKeys.has(key) && !out.some((o) => o.itemKey === key)) out.push({ itemKey: key, kind });
@@ -63,7 +63,7 @@ async function newCandidates(catalog: Catalog, limit = 40): Promise<{ itemKey: s
   for (const it of byAdded) if (it.triage === 'relearn') push(it.key, it.kind);
   for (const it of byAdded) if (it.triage === 'new') push(it.key, it.kind);
   if (out.length < limit) {
-    for (const w of unlockedWords(catalog.words, knownChars(items), new Set(items.keys())).slice(0, limit)) {
+    for (const w of unlockedWords(catalog.words, known, new Set(items.keys())).slice(0, limit)) {
       push(itemKey('word', w.w), 'word');
     }
   }
@@ -196,7 +196,7 @@ export async function rateCard(input: RateInput): Promise<ActiveSession> {
   const f = scheduler(settings.retention);
   return db.transaction('rw', [db.cards, db.reviewLogs, db.sessions, db.days], async () => {
     const card = (await db.cards.get(input.cardId)) as CardRecord;
-    const next = rate(f, card, input.grade, now);
+    const next = { ...rate(f, card, input.grade, now), lastRating: input.grade as 1 | 2 | 3 | 4 };
     await db.cards.put(next);
     await db.reviewLogs.add({
       cardId: card.id,

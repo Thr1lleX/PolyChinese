@@ -7,7 +7,7 @@ import { parseItemKey, type CardType } from '../db/model';
 import { parseNumeric } from '../lib/pinyin';
 import { checkPinyin } from '../srs/pinyinCheck';
 import { Definitions, SpeakButton } from '../ui/Definitions';
-import { Pinyin, ToneHanzi } from '../ui/Pinyin';
+import { Pinyin, ReadingNote, ToneHanzi } from '../ui/Pinyin';
 import { RatingPanel, describeResult } from '../ui/Rating';
 import { WritingPrompt } from '../ui/WritingPrompt';
 import { CharacterAnimation } from '../writing/CharacterAnimation';
@@ -89,7 +89,8 @@ function Answer({ text, kind, entry, audio }: { text: string; kind: 'char' | 'wo
       <Definitions reading={reading} max={4} />
       {context && (
         <p className="muted">
-          <span className="hanzi">{context.w}</span> <Pinyin numeric={context.rd[0].p} /> · {context.rd[0].fr?.slice(0, 2).join(' ; ')}
+          <span className="hanzi">{context.w}</span> <Pinyin numeric={context.rd[0].p} />{' '}
+          <ReadingNote syllable={catalog.syllableIn(context, text)} main={reading.p} /> · {context.rd[0].fr?.slice(0, 2).join(' ; ')}
         </p>
       )}
     </div>
