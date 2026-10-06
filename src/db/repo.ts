@@ -33,7 +33,7 @@ export async function addToDeck(
 
     let deck = await db.decks.where('name').equals(deckName).first();
     if (!deck) {
-      const id = await db.decks.add({ name: deckName, itemKeys: [], createdAt: now });
+      const id = await db.decks.add({ name: deckName, itemKeys: [], createdAt: now, uid: crypto.randomUUID() });
       deck = (await db.decks.get(id))!;
     }
     const inDeck = new Set(deck.itemKeys);

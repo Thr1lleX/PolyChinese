@@ -1,10 +1,12 @@
 // Sauvegarde : export et import de toutes les données utilisateur en JSON (SPEC §6).
-import { db } from './db';
+import { applyRemote } from '../sync/syncService';
+import type { SyncData } from '../sync/merge';
+import { db, markSyncTransaction } from './db';
 import { getSettings, updateSettings, type Settings } from '../settings';
-import type { ActiveSession, CardRecord, DayActivity, Deck, ReviewLog, UserItem } from './model';
+import type { ActiveSession, CardRecord, DayActivity, Deck, ReviewLog, Tombstone, UserItem } from './model';
 
 export const BACKUP_FORMAT = 'polychinese-backup';
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;
@@ -17,16 +19,19 @@ export interface Backup {
   reviewLogs: ReviewLog[];
   days: DayActivity[];
   sessions: ActiveSession[];
+  /** Suppressions récentes (version 2) */
+  tombstones?: Tombstone[];
 }
 
 export async function buildBackup(): Promise<Backup> {
-  const [items, cards, decks, reviewLogs, days, sessions] = await Promise.all([
+  const [items, cards, decks, reviewLogs, days, sessions, tombstones] = await Promise.all([
     db.items.toArray(),
     db.cards.toArray(),
     db.decks.toArray(),
     db.reviewLogs.toArray(),
     db.days.toArray(),
     db.sessions.toArray(),
+    db.tombstones.toArray(),
   ]);
   return {
     format: BACKUP_FORMAT,
@@ -39,6 +44,7 @@ export async function buildBackup(): Promise<Backup> {
     reviewLogs,
     days,
     sessions,
+    tombstones,
   };
 }
 
@@ -71,58 +77,44 @@ export function parseBackup(text: string): Backup {
 /**
  * Importe une sauvegarde.
  * - replace : efface tout et restaure la sauvegarde ;
- * - merge : ajoute ce qui manque ; pour une carte présente des deux côtés, garde la plus récemment révisée.
+ * - merge : fusionne comme une synchronisation (la modification la plus récente gagne).
  */
 export async function restoreBackup(backup: Backup, mode: 'replace' | 'merge'): Promise<void> {
-  const tables = [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions];
-  await db.transaction('rw', tables, async () => {
-    if (mode === 'replace') {
-      await Promise.all(tables.map((t) => t.clear()));
-      await db.items.bulkAdd(backup.items);
-      await db.cards.bulkAdd(backup.cards);
-      await db.decks.bulkAdd(backup.decks);
-      await db.reviewLogs.bulkAdd(backup.reviewLogs);
-      await db.days.bulkAdd(backup.days);
-      await db.sessions.bulkAdd(backup.sessions);
-      return;
-    }
-
-    const existingItems = new Set(await db.items.toCollection().primaryKeys());
-    await db.items.bulkAdd(backup.items.filter((it) => !existingItems.has(it.key)));
-
-    const lastReview = (c: CardRecord | undefined) => c?.fsrs.last_review?.getTime() ?? 0;
-    const localCards = new Map((await db.cards.toArray()).map((c) => [c.id, c]));
-    await db.cards.bulkPut(backup.cards.filter((c) => lastReview(c) > lastReview(localCards.get(c.id)) || !localCards.has(c.id)));
-
-    for (const deck of backup.decks) {
-      const local = await db.decks.where('name').equals(deck.name).first();
-      if (!local) await db.decks.add({ ...deck, id: undefined });
-      else await db.decks.update(local.id!, { itemKeys: [...new Set([...local.itemKeys, ...deck.itemKeys])] });
-    }
-
-    const logKey = (l: ReviewLog) => `${l.cardId}|${l.at.getTime()}`;
-    const localLogs = new Set((await db.reviewLogs.toArray()).map(logKey));
-    await db.reviewLogs.bulkAdd(backup.reviewLogs.filter((l) => !localLogs.has(logKey(l))).map((l) => ({ ...l, id: undefined })));
-
-    for (const d of backup.days) {
-      const local = await db.days.get(d.day);
-      await db.days.put(
-        local
-          ? {
-              day: d.day,
-              activeMs: Math.max(local.activeMs, d.activeMs),
-              reviews: Math.max(local.reviews, d.reviews),
-              newItems: Math.max(local.newItems, d.newItems),
-              expressDone: local.expressDone || d.expressDone,
-            }
-          : d,
-      );
-    }
+  const data: SyncData = {
+    items: backup.items,
+    cards: backup.cards,
+    decks: backup.decks.map((d) => ({ ...d, uid: d.uid ?? crypto.randomUUID() })),
+    reviewLogs: backup.reviewLogs,
+    days: backup.days,
+    sessions: backup.sessions,
+    tombstones: backup.tombstones ?? [],
+  };
+  if (mode === 'merge') {
+    await applyRemote(data);
+    return;
+  }
+  const tables = [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones];
+  await db.transaction('rw', tables, async (tx) => {
+    // Restauration : on garde les dates de modification de la sauvegarde
+    markSyncTransaction(tx);
+    await Promise.all(tables.map((t) => t.clear()));
+    await db.items.bulkAdd(data.items);
+    await db.cards.bulkAdd(data.cards);
+    await db.decks.bulkAdd(data.decks);
+    await db.reviewLogs.bulkAdd(data.reviewLogs);
+    await db.days.bulkAdd(data.days);
+    await db.sessions.bulkAdd(data.sessions);
+    await db.tombstones.bulkAdd(data.tombstones);
   });
-  if (mode === 'replace') updateSettings({ ...backup.settings, lastExportAt: getSettings().lastExportAt });
+  updateSettings({ ...backup.settings, lastExportAt: getSettings().lastExportAt });
 }
 
 /** Efface toutes les données utilisateur (les réglages sont conservés). */
 export async function wipeUserData(): Promise<void> {
-  await Promise.all([db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions].map((t) => t.clear()));
+  const tables = [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones];
+  // Effacement local uniquement : aucune trace de suppression à propager aux autres appareils
+  await db.transaction('rw', tables, async (tx) => {
+    markSyncTransaction(tx);
+    await Promise.all(tables.map((t) => t.clear()));
+  });
 }

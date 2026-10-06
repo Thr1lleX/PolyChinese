@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { HashRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { CatalogProvider } from './data/CatalogContext';
+import { SyncIndicator } from './ui/SyncIndicator';
 import { AboutScreen } from './screens/AboutScreen';
 import { CharacterPracticeScreen } from './screens/CharacterPracticeScreen';
 import { CharacterScreen } from './screens/CharacterScreen';
@@ -42,6 +43,7 @@ export function App() {
           <NavLink to="/recherche">Chercher</NavLink>
           <NavLink to="/listes">Listes</NavLink>
           <NavLink to="/ecrire">Écrire</NavLink>
+          <SyncIndicator />
         </nav>
       </header>
       <main>

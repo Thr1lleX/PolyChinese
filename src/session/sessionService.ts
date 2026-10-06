@@ -2,6 +2,7 @@
 import { State, type Grade } from 'ts-fsrs';
 import type { Catalog } from '../data/catalog';
 import { unlockedWords } from '../data/unlocked';
+import { bumpDay } from '../db/activity';
 import { db, requestPersistence } from '../db/db';
 import { buildMasteryMap, knownCharsFrom } from '../db/mastery';
 import { itemKey, type ActiveSession, type CardRecord, type CardType, type ItemKind, type SessionContext } from '../db/model';
@@ -164,8 +165,7 @@ export async function addActiveTime(sessionId: string, ms: number): Promise<void
     const s = await db.sessions.get(sessionId);
     if (!s || s.status !== 'running') return;
     await db.sessions.update(sessionId, { activeMs: s.activeMs + ms });
-    const day = await db.days.get(s.day);
-    await db.days.put({ ...(day ?? { day: s.day, reviews: 0, newItems: 0, activeMs: 0 }), activeMs: (day?.activeMs ?? 0) + ms });
+    await bumpDay(s.day, { activeMs: ms });
   });
 }
 
@@ -212,12 +212,7 @@ export async function rateCard(input: RateInput): Promise<ActiveSession> {
     });
 
     const isNewItem = input.entry.kind === 'new';
-    const day = await db.days.get(input.session.day);
-    await db.days.put({
-      ...(day ?? { day: input.session.day, activeMs: 0, reviews: 0, newItems: 0 }),
-      reviews: (day?.reviews ?? 0) + 1,
-      newItems: (day?.newItems ?? 0) + (isNewItem ? 1 : 0),
-    });
+    await bumpDay(input.session.day, { reviews: 1, newItems: isNewItem ? 1 : 0 });
 
     const queue = [...input.session.queue];
     // Carte en apprentissage : revue une nouvelle fois un peu plus loin dans la séance
@@ -243,8 +238,7 @@ export async function finishSession(session: ActiveSession, completed: boolean):
   await db.transaction('rw', db.sessions, db.days, async () => {
     await db.sessions.update(session.id, { status: 'done' });
     if (session.express && completed) {
-      const day = await db.days.get(session.day);
-      await db.days.put({ ...(day ?? { day: session.day, activeMs: 0, reviews: 0, newItems: 0 }), expressDone: true });
+      await bumpDay(session.day, { expressDone: true });
     }
   });
 }

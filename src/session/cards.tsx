@@ -5,7 +5,7 @@ import { useCatalog } from '../data/CatalogContext';
 import type { CharEntry, WordEntry } from '../data/types';
 import { parseItemKey, type CardType } from '../db/model';
 import { parseNumeric } from '../lib/pinyin';
-import { checkPinyin } from '../srs/pinyinCheck';
+import { checkPinyin, gradePinyin } from '../srs/pinyinCheck';
 import { Definitions, SpeakButton } from '../ui/Definitions';
 import { Pinyin, ReadingNote, ToneHanzi } from '../ui/Pinyin';
 import { RatingPanel, describeResult } from '../ui/Rating';
@@ -154,14 +154,14 @@ export function PinyinCard({ itemKey, audio, onRated }: CardProps) {
   const [input, setInput] = useState('');
   const [checked, setChecked] = useState<{ auto: Rating; value: Rating; description: string; result: ReturnType<typeof checkPinyin> } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const shownAt = useRef(performance.now());
 
   const submit = () => {
     if (!entry || !input.trim()) return;
     // Plusieurs lectures possibles (了 le / liǎo) : on garde la meilleure
     const results = entry.rd.map((r) => checkPinyin(r.p, input));
     const result = results.find((r) => r.tonesOk) ?? results.find((r) => r.lettersOk) ?? results[0];
-    const auto: Rating = result.tonesOk ? 'good' : result.lettersOk ? 'hard' : 'again';
-    const description = result.tonesOk ? 'Correct' : result.lettersOk ? 'Ton(s) faux' : 'Syllabe(s) fausse(s)';
+    const { rating: auto, description } = gradePinyin(result, performance.now() - shownAt.current);
     setChecked({ auto, value: auto, description, result });
     inputRef.current?.blur();
     if (audio) speak(text);

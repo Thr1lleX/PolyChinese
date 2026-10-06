@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { downloadBackup, parseBackup, restoreBackup, wipeUserData, type Backup } from '../db/backup';
 import { updateSettings, useSettings } from '../settings';
+import { SyncSettings } from '../ui/SyncSettings';
 import { ToleranceSelect } from '../ui/ToleranceSelect';
+import { disableSync, getSyncConfig } from '../sync/syncService';
 
 export function SettingsScreen() {
   const settings = useSettings();
@@ -12,7 +14,7 @@ export function SettingsScreen() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (location.hash.endsWith('#sauvegarde')) document.getElementById('sauvegarde')?.scrollIntoView();
+    for (const id of ['sauvegarde', 'synchro']) if (location.hash.endsWith(`#${id}`)) document.getElementById(id)?.scrollIntoView();
   }, []);
 
   const number = (key: 'dailyMinutes' | 'maxNewPerDay' | 'dayCutoffHour' | 'jokersPerWeek', min: number, max: number) => (
@@ -84,6 +86,11 @@ export function SettingsScreen() {
           <input type="checkbox" checked={settings.showGrid} onChange={(e) => updateSettings({ showGrid: e.target.checked })} />
           <span>Grille d'aide 米字格</span>
         </label>
+      </section>
+
+      <section id="synchro">
+        <h2>Synchronisation entre appareils</h2>
+        <SyncSettings />
       </section>
 
       <section className="form" id="sauvegarde">
@@ -158,6 +165,8 @@ export function SettingsScreen() {
           onClick={async () => {
             if (!confirm('Effacer tous vos éléments, cartes et historique ? Pensez à exporter avant.')) return;
             if (!confirm('Vraiment tout effacer ? Cette action est définitive.')) return;
+            // Sans cela, la prochaine synchronisation ramènerait tout depuis le dépôt
+            if (getSyncConfig()?.enabled) disableSync();
             await wipeUserData();
             setMessage('Données effacées.');
           }}

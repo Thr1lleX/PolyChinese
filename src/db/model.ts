@@ -31,6 +31,8 @@ export interface UserItem {
   addedAt: Date;
   triagedAt?: Date;
   note?: string;
+  /** Dernière modification (ms), pour la synchronisation */
+  updatedAt?: number;
 }
 
 export type CardType = 'writing' | 'meaning' | 'pinyin' | 'listening' | 'speaking';
@@ -63,6 +65,8 @@ export interface CardRecord {
   lastRating?: 1 | 2 | 3 | 4;
   suspended?: boolean;
   createdAt: Date;
+  /** Dernière modification (ms), pour la synchronisation */
+  updatedAt?: number;
 }
 
 export interface Deck {
@@ -72,6 +76,9 @@ export interface Deck {
   itemKeys: string[];
   cardTypes?: CardType[];
   createdAt: Date;
+  /** Identifiant stable entre appareils */
+  uid?: string;
+  updatedAt?: number;
 }
 
 export const itemKey = (kind: ItemKind, text: string) => `${kind === 'char' ? 'c' : 'w'}:${text}`;
@@ -127,6 +134,8 @@ export interface ActiveSession {
   /** Cartes notées pendant la séance */
   results: { cardId: string; rating: 1 | 2 | 3 | 4; isNew: boolean }[];
   status: 'running' | 'done' | 'expired';
+  /** Dernière modification (ms), pour la synchronisation */
+  updatedAt?: number;
 }
 
 /** Activité d'une journée d'étude (régularité, statistiques). */
@@ -136,4 +145,20 @@ export interface DayActivity {
   reviews: number;
   newItems: number;
   expressDone?: boolean;
+  /** Compteurs par appareil (somme = totaux ci-dessus), pour additionner PC et téléphone */
+  devices?: Record<string, DeviceDay>;
+}
+
+/** Activité d'un appareil pendant une journée. */
+export interface DeviceDay {
+  activeMs: number;
+  reviews: number;
+  newItems: number;
+}
+
+/** Trace d'une suppression, pour la propager aux autres appareils (« items:c:学 »). */
+export interface Tombstone {
+  key: string;
+  /** Moment de la suppression (ms) */
+  at: number;
 }

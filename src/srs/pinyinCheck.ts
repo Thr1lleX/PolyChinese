@@ -60,3 +60,20 @@ export function checkPinyin(expectedNumeric: string, input: string): PinyinCheck
   const tonesOk = lettersOk && syllables.every((s) => s.tone === s.expectedTone);
   return { lettersOk, tonesOk, syllables };
 }
+
+/** Temps de réponse « Facile » : 2,5 s de lecture + 2 s par syllabe à taper. */
+export function easyPinyinMs(syllables: number): number {
+  return 2500 + 2000 * syllables;
+}
+
+/**
+ * Note proposée pour une carte pinyin : juste et rapide = Facile, juste = Bien,
+ * tons faux = Difficile, syllabe fausse = Raté.
+ */
+export function gradePinyin(check: PinyinCheck, elapsedMs: number): { rating: 'again' | 'hard' | 'good' | 'easy'; description: string } {
+  const seconds = `${(elapsedMs / 1000).toLocaleString('fr', { maximumFractionDigits: 1 })} s`;
+  if (!check.lettersOk) return { rating: 'again', description: 'Syllabe(s) fausse(s)' };
+  if (!check.tonesOk) return { rating: 'hard', description: `Ton(s) faux · ${seconds}` };
+  const fast = elapsedMs <= easyPinyinMs(check.syllables.length);
+  return { rating: fast ? 'easy' : 'good', description: `Correct · ${seconds}${fast ? ' (réponse rapide)' : ''}` };
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkPinyin } from './pinyinCheck';
+import { checkPinyin, gradePinyin } from './pinyinCheck';
 
 describe('checkPinyin', () => {
   it.each(['xue2sheng5', 'xue2 sheng5', 'xue2sheng', 'XUE2 SHENG', 'xuésheng', "xué'sheng"])('accepte « %s »', (input) => {
@@ -35,4 +35,12 @@ describe('checkPinyin', () => {
   it('noms propres (majuscule dans le dictionnaire)', () => {
     expect(checkPinyin('Zhong1 guo2', 'zhong1guo2').tonesOk).toBe(true);
   });
+});
+
+describe('gradePinyin', () => {
+  const ok = checkPinyin('xue2 sheng5', 'xue2sheng5');
+  it('juste et rapide : Facile', () => expect(gradePinyin(ok, 4000).rating).toBe('easy'));
+  it('juste mais lent : Bien', () => expect(gradePinyin(ok, 9000).rating).toBe('good'));
+  it('ton faux : Difficile', () => expect(gradePinyin(checkPinyin('xue2 sheng5', 'xue2sheng1'), 3000).rating).toBe('hard'));
+  it('syllabe fausse : Raté', () => expect(gradePinyin(checkPinyin('xue2 sheng5', 'xie2sheng'), 3000).rating).toBe('again'));
 });
