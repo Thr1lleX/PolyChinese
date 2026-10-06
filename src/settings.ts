@@ -27,6 +27,8 @@ export interface Settings {
   lastDuration: number;
   /** Date ISO de la dernière sauvegarde exportée */
   lastExportAt: string | null;
+  /** Échauffement des séances : nombre de mots en dictée de tons (0 = désactivé) */
+  toneWarmup: number;
 }
 
 const DEFAULTS: Settings = {
@@ -42,6 +44,7 @@ const DEFAULTS: Settings = {
   lastContext: 'listen',
   lastDuration: 25,
   lastExportAt: null,
+  toneWarmup: 5,
 };
 
 const KEY = 'polychinese.settings';

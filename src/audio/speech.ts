@@ -24,12 +24,16 @@ export function hasChineseVoice(): boolean {
 export function speak(text: string, rate = 0.8): void {
   if (!speechAvailable()) return;
   cachedVoice ??= pickVoice() ?? undefined;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-CN';
-  u.rate = rate;
-  if (cachedVoice) u.voice = cachedVoice;
-  speechSynthesis.speak(u);
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = rate;
+    if (cachedVoice) u.voice = cachedVoice;
+    speechSynthesis.speak(u);
+  } catch {
+    // Synthèse vocale indisponible ou voix invalide : l'exercice reste utilisable (bouton réécouter)
+  }
 }
 
 if (speechAvailable()) {

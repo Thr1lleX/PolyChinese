@@ -3,7 +3,7 @@ import { applyRemote } from '../sync/syncService';
 import type { SyncData } from '../sync/merge';
 import { db, markSyncTransaction } from './db';
 import { getSettings, updateSettings, type Settings } from '../settings';
-import type { ActiveSession, CardRecord, DayActivity, Deck, ReviewLog, Tombstone, UserItem } from './model';
+import type { ActiveSession, CardRecord, DayActivity, Deck, ReviewLog, Tombstone, ToneLog, UserItem } from './model';
 
 export const BACKUP_FORMAT = 'polychinese-backup';
 export const BACKUP_VERSION = 2;
@@ -21,10 +21,12 @@ export interface Backup {
   sessions: ActiveSession[];
   /** Suppressions récentes (version 2) */
   tombstones?: Tombstone[];
+  /** Dictée de tons (version 2) */
+  toneLogs?: ToneLog[];
 }
 
 export async function buildBackup(): Promise<Backup> {
-  const [items, cards, decks, reviewLogs, days, sessions, tombstones] = await Promise.all([
+  const [items, cards, decks, reviewLogs, days, sessions, tombstones, toneLogs] = await Promise.all([
     db.items.toArray(),
     db.cards.toArray(),
     db.decks.toArray(),
@@ -32,6 +34,7 @@ export async function buildBackup(): Promise<Backup> {
     db.days.toArray(),
     db.sessions.toArray(),
     db.tombstones.toArray(),
+    db.toneLogs.toArray(),
   ]);
   return {
     format: BACKUP_FORMAT,
@@ -45,6 +48,7 @@ export async function buildBackup(): Promise<Backup> {
     days,
     sessions,
     tombstones,
+    toneLogs,
   };
 }
 
@@ -88,12 +92,13 @@ export async function restoreBackup(backup: Backup, mode: 'replace' | 'merge'): 
     days: backup.days,
     sessions: backup.sessions,
     tombstones: backup.tombstones ?? [],
+    toneLogs: backup.toneLogs ?? [],
   };
   if (mode === 'merge') {
     await applyRemote(data);
     return;
   }
-  const tables = [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones];
+  const tables = [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones, db.toneLogs];
   await db.transaction('rw', tables, async (tx) => {
     // Restauration : on garde les dates de modification de la sauvegarde
     markSyncTransaction(tx);
@@ -105,13 +110,14 @@ export async function restoreBackup(backup: Backup, mode: 'replace' | 'merge'): 
     await db.days.bulkAdd(data.days);
     await db.sessions.bulkAdd(data.sessions);
     await db.tombstones.bulkAdd(data.tombstones);
+    await db.toneLogs.bulkAdd(data.toneLogs ?? []);
   });
   updateSettings({ ...backup.settings, lastExportAt: getSettings().lastExportAt });
 }
 
 /** Efface toutes les données utilisateur (les réglages sont conservés). */
 export async function wipeUserData(): Promise<void> {
-  const tables = [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones];
+  const tables = [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones, db.toneLogs];
   // Effacement local uniquement : aucune trace de suppression à propager aux autres appareils
   await db.transaction('rw', tables, async (tx) => {
     markSyncTransaction(tx);

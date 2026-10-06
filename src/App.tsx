@@ -16,6 +16,8 @@ import { SearchScreen } from './screens/SearchScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { StatsScreen } from './screens/StatsScreen';
 import { SessionScreen } from './session/SessionScreen';
+import { DictationScreen } from './oral/DictationScreen';
+import { OralScreen } from './oral/OralScreen';
 import { PracticeScreen } from './screens/PracticeScreen';
 import { WordScreen } from './screens/WordScreen';
 
@@ -43,6 +45,7 @@ export function App() {
           <NavLink to="/recherche">Chercher</NavLink>
           <NavLink to="/listes">Listes</NavLink>
           <NavLink to="/ecrire">Écrire</NavLink>
+          <NavLink to="/oral">Oral</NavLink>
           <SyncIndicator />
         </nav>
       </header>
@@ -52,6 +55,8 @@ export function App() {
             <Route path="/" element={<HomeScreen />} />
             <Route path="/recherche" element={<SearchScreen />} />
             <Route path="/seance" element={<SessionScreen />} />
+            <Route path="/oral" element={<OralScreen />} />
+            <Route path="/oral/dictee" element={<DictationScreen />} />
             <Route path="/stats" element={<StatsScreen />} />
             <Route path="/reglages" element={<SettingsScreen />} />
             <Route path="/c/:char" element={<CharacterScreen />} />

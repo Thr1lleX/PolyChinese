@@ -1,12 +1,15 @@
 // Composition d'une séance selon le temps disponible (SPEC §9.2 à §9.4). Fonctions pures.
 import { State } from 'ts-fsrs';
 import type { CardRecord, CardType, ItemKind } from '../db/model';
+import type { ToneWord } from '../oral/toneWords';
 
 export type QueueEntry =
   /** Carte à réviser */
   | { kind: 'review'; cardId: string }
   /** Nouvelle carte d'un élément déjà commencé (carte « sœur ») */
   | { kind: 'sister'; cardId: string }
+  /** Échauffement : une question de dictée de tons (pas de carte FSRS) */
+  | { kind: 'tone'; word: ToneWord }
   /** Fiche de découverte d'un nouvel élément (pas de note) */
   | { kind: 'discover'; itemKey: string; itemKind: ItemKind }
   /** Première carte d'un nouvel élément, quelques cartes après sa découverte */

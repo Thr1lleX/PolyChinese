@@ -7,6 +7,8 @@ import { db, requestPersistence } from '../db/db';
 import { buildMasteryMap, knownCharsFrom } from '../db/mastery';
 import { itemKey, type ActiveSession, type CardRecord, type CardType, type ItemKind, type SessionContext } from '../db/model';
 import { addToDeck } from '../db/repo';
+import { knownTexts, loadComboStats, tonePool } from '../oral/toneData';
+import { pickDictation } from '../oral/toneWords';
 import { getSettings } from '../settings';
 import {
   DEFAULT_CARD_MS,
@@ -121,9 +123,22 @@ export async function planSession(catalog: Catalog, opts: SessionPlanOptions): P
   });
 }
 
+/** Durée estimée d'une question de dictée de tons. */
+const TONE_ITEM_MS = 10000;
+
+/** Échauffement oral (SPEC §9.2) : quelques mots en dictée de tons, paires faibles d'abord. */
+async function warmUp(catalog: Catalog, opts: SessionPlanOptions): Promise<QueueEntry[]> {
+  const count = getSettings().toneWarmup;
+  if (count <= 0 || opts.context === 'silent' || !opts.voiceAvailable || opts.durationMin <= EXPRESS_MINUTES) return [];
+  const [items, cards, stats] = await Promise.all([db.items.toArray(), db.cards.toArray(), loadComboStats()]);
+  const pool = tonePool(catalog, knownTexts(buildMasteryMap(items, cards)));
+  return pickDictation(pool, { count, stats }).map((word) => ({ kind: 'tone', word }));
+}
+
 export async function startSession(catalog: Catalog, opts: SessionPlanOptions): Promise<ActiveSession> {
   requestPersistence();
-  const plan = await planSession(catalog, opts);
+  const warm = await warmUp(catalog, opts);
+  const plan = await planSession(catalog, { ...opts, durationMin: Math.max(1, opts.durationMin - (warm.length * TONE_ITEM_MS) / 60000) });
   const session: ActiveSession = {
     id: crypto.randomUUID(),
     day: today(),
@@ -132,7 +147,7 @@ export async function startSession(catalog: Catalog, opts: SessionPlanOptions): 
     extraMin: 0,
     express: opts.durationMin <= EXPRESS_MINUTES,
     context: opts.context,
-    queue: plan.queue,
+    queue: [...warm, ...plan.queue],
     position: 0,
     activeMs: 0,
     results: [],

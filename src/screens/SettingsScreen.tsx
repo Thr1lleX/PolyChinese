@@ -64,6 +64,16 @@ export function SettingsScreen() {
           {number('dayCutoffHour', 0, 8)}
         </label>
         <label className="field">
+          <span>Échauffement des séances : mots en dictée de tons (0 = désactivé)</span>
+          <input
+            type="number"
+            min={0}
+            max={15}
+            value={settings.toneWarmup}
+            onChange={(e) => updateSettings({ toneWarmup: Math.max(0, Math.min(15, Number(e.target.value))) })}
+          />
+        </label>
+        <label className="field">
           <span>Jokers de régularité par semaine</span>
           {number('jokersPerWeek', 0, 7)}
         </label>

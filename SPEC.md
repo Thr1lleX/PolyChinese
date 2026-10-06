@@ -452,6 +452,9 @@ Chaque étape produit une version **utilisable et testable par l'utilisateur**.
   - Les réglages restent en localStorage (inclus dans la sauvegarde JSON).
 
 ### Étape 4 — Oral
+- ✅ Livré en premier (priorité de l'utilisateur) : dictée de tons (réponse = tons prononcés après changements de ton ; tons écrits acceptés), tableau des 20 paires avec réussite et exemples, échauffement de 5 mots en début de séance (réglable), journal synchronisé.
+- Reste : enregistrement de la voix et analyse des tons, carte « Prononciation », paires minimales.
+
 - Prototype d'analyse des tons d'abord : calibrage, enregistrement, courbe, classification. **Point de décision** : si la fiabilité est suffisante (objectif ≥ 85 % d'accord avec l'oreille de l'utilisateur sur des mots de 1 à 2 syllabes), carte prononciation notée automatiquement. Sinon, auto-évaluation avec courbe indicative.
 - Carte prononciation, paires de tons, dictée de tons, échauffement en séance.
 - Option « Suis-je compris ? ».

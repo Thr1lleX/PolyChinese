@@ -1,0 +1,156 @@
+/* Étape 4 : oral (dictée de tons, paires de tons) */
+
+.listen-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.listen-row .listen-button {
+  margin: 0.5rem 0 0;
+}
+
+.tone-slots {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  margin: 0.4rem 0;
+}
+.tone-slot {
+  display: grid;
+  place-items: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.tone-slot.tone1,
+.tone-slot.tone2,
+.tone-slot.tone3,
+.tone-slot.tone4 {
+  border-style: solid;
+  border-color: currentColor;
+}
+.tone-slot.ok {
+  background: color-mix(in srgb, #2e7d32 15%, transparent);
+}
+.tone-slot.ko {
+  background: color-mix(in srgb, #c62828 15%, transparent);
+}
+
+.tone-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+.tone-button {
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+  padding: 0.7rem 0.2rem;
+  border-width: 2px;
+  border-color: currentColor;
+}
+.tone-mark {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.tone-shape {
+  font-size: 1rem;
+}
+.tone-button small {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.verdict {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0.2rem 0;
+}
+.verdict.ok {
+  color: #2e7d32;
+}
+.verdict.ko {
+  color: #c62828;
+}
+.warmup-label {
+  margin: 0;
+}
+.big-score {
+  font-size: 2.4rem;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.pairs-table {
+  border-collapse: separate;
+  border-spacing: 4px;
+  margin: 0 auto;
+}
+.pairs-table th {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0 0.2rem;
+}
+.pair-cell {
+  display: grid;
+  justify-items: center;
+  width: 3.6rem;
+  padding: 0.35rem 0.1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.pair-cell small {
+  font-weight: 400;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.pair-cell.pair-good {
+  background: color-mix(in srgb, #2e7d32 22%, var(--surface));
+}
+.pair-cell.pair-mid {
+  background: color-mix(in srgb, #ef6c00 22%, var(--surface));
+}
+.pair-cell.pair-bad {
+  background: color-mix(in srgb, #c62828 22%, var(--surface));
+}
+.pair-cell.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.example-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  display: grid;
+  gap: 0.4rem;
+}
+.example-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.example-word {
+  text-decoration: none;
+  color: var(--ink);
+}
+.example-word .hanzi {
+  font-size: 1.4rem;
+}
+
+@media (max-width: 420px) {
+  .app-header nav {
+    gap: 0.7rem;
+    font-size: 0.92rem;
+  }
+  .pair-cell {
+    width: 3rem;
+  }
+}

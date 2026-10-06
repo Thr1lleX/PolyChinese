@@ -10,6 +10,8 @@ import { getSettings } from '../settings';
 import { computeStreak, isValidated } from '../srs/streak';
 import { RATINGS, RATING_LABELS } from '../writing/grading';
 import { RatingChip } from '../ui/Rating';
+import { logToneAnswer } from '../oral/toneData';
+import { ToneDictationItem } from '../oral/ToneDictationItem';
 import { CARD_COMPONENTS, DiscoveryCard } from './cards';
 import {
   addActiveTime,
@@ -28,7 +30,7 @@ const formatClock = (ms: number) => {
 };
 
 /** Carte visée par une entrée de la file. */
-function entryCard(entry: Exclude<ActiveSession['queue'][number], { kind: 'discover' }>): {
+function entryCard(entry: Exclude<ActiveSession['queue'][number], { kind: 'discover' } | { kind: 'tone' }>): {
   cardId: string;
   itemKey: string;
   type: CardType;
@@ -176,6 +178,24 @@ export function SessionScreen() {
     await db.sessions.put(updated);
     advance(updated);
   };
+
+  // Échauffement : dictée de tons (passée si le son n'est pas disponible)
+  if (entry.kind === 'tone') {
+    if (!voice || session.context === 'silent') return <SkipCard key={session.position} onSkip={skip} />;
+    return frame(
+      <>
+        <p className="muted small center warmup-label">Échauffement · dictée de tons</p>
+        <ToneDictationItem
+          key={`t-${session.position}`}
+          word={entry.word}
+          onNext={async ({ answer, correct }) => {
+            await logToneAnswer(entry.word, answer, correct, 'warmup');
+            await skip();
+          }}
+        />
+      </>,
+    );
+  }
 
   // Découverte d'un nouvel élément : pas de note, la question viendra quelques cartes plus loin
   if (entry.kind === 'discover') {

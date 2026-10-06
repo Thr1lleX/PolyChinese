@@ -1,6 +1,6 @@
 import Dexie, { type EntityTable, type Transaction } from 'dexie';
 import { deviceId } from './device';
-import type { ActiveSession, CardRecord, DayActivity, Deck, ReviewLog, Tombstone, UserItem } from './model';
+import type { ActiveSession, CardRecord, DayActivity, Deck, ReviewLog, Tombstone, ToneLog, UserItem } from './model';
 
 export const db = new Dexie('polychinese') as Dexie & {
   items: EntityTable<UserItem, 'key'>;
@@ -10,6 +10,7 @@ export const db = new Dexie('polychinese') as Dexie & {
   sessions: EntityTable<ActiveSession, 'id'>;
   days: EntityTable<DayActivity, 'day'>;
   tombstones: EntityTable<Tombstone, 'key'>;
+  toneLogs: EntityTable<ToneLog, 'id'>;
 };
 
 db.version(1).stores({
@@ -52,6 +53,9 @@ db.version(3)
       upgrading = false;
     }
   });
+
+// Version 4 : journal de la dictée de tons
+db.version(4).stores({ toneLogs: '++id, day, at, expected' });
 
 // --- Suivi des modifications pour la synchronisation
 
@@ -107,7 +111,7 @@ for (const { table, name, key } of TRACKED) {
   });
 }
 
-for (const table of [db.reviewLogs, db.days] as unknown as Dexie.Table<unknown, unknown>[]) {
+for (const table of [db.reviewLogs, db.days, db.toneLogs] as unknown as Dexie.Table<unknown, unknown>[]) {
   table.hook('creating', function (_pk, _obj, tx) {
     if (!isSync(tx)) notifyChange();
   });

@@ -4,7 +4,7 @@
 // - suppressions : propagées grâce aux traces (tombstones), sauf si l'élément a été modifié après ;
 // - journal des révisions : union ;
 // - activité quotidienne : comptée par appareil, puis additionnée.
-import type { ActiveSession, CardRecord, DayActivity, Deck, DeviceDay, ReviewLog, Tombstone, UserItem } from '../db/model';
+import type { ActiveSession, CardRecord, DayActivity, Deck, DeviceDay, ReviewLog, Tombstone, ToneLog, UserItem } from '../db/model';
 
 export interface SyncData {
   items: UserItem[];
@@ -14,6 +14,8 @@ export interface SyncData {
   days: DayActivity[];
   sessions: ActiveSession[];
   tombstones: Tombstone[];
+  /** Dictée de tons (absent des fichiers créés avant l'étape 4) */
+  toneLogs?: ToneLog[];
 }
 
 /** Totaux d'une journée à partir des compteurs de chaque appareil. */
@@ -83,6 +85,14 @@ function mergeDays(local: DayActivity[], remote: DayActivity[]): DayActivity[] {
   return [...out.values()];
 }
 
+export const toneLogKey = (l: ToneLog) => `${l.word}|${l.at.getTime()}`;
+
+function mergeToneLogs(local: ToneLog[], remote: ToneLog[]): ToneLog[] {
+  const out = new Map(local.map((l) => [toneLogKey(l), l]));
+  for (const l of remote) if (!out.has(toneLogKey(l))) out.set(toneLogKey(l), { ...l, id: undefined });
+  return [...out.values()];
+}
+
 export function mergeData(local: SyncData, remote: SyncData, now = Date.now()): SyncData {
   // Traces de suppression : la plus récente par clé, les très anciennes oubliées
   const tomb = new Map<string, number>();
@@ -112,5 +122,6 @@ export function mergeData(local: SyncData, remote: SyncData, now = Date.now()): 
     days: mergeDays(local.days, remote.days),
     sessions: lastWriteWins(local.sessions, remote.sessions, (x) => x.id, deleted('sessions')),
     tombstones: [...tomb].map(([key, at]) => ({ key, at })),
+    toneLogs: mergeToneLogs(local.toneLogs ?? [], remote.toneLogs ?? []),
   };
 }

@@ -162,3 +162,19 @@ export interface Tombstone {
   /** Moment de la suppression (ms) */
   at: number;
 }
+
+/** Réponse à une question de dictée de tons. */
+export interface ToneLog {
+  id?: number;
+  at: Date;
+  /** Journée d'étude */
+  day: string;
+  word: string;
+  /** Tons prononcés attendus (« 2-3 ») */
+  expected: string;
+  /** Tons écrits (« 3-3 ») */
+  written: string;
+  answer: string;
+  correct: boolean;
+  source: 'dictation' | 'warmup';
+}

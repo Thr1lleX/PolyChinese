@@ -6,6 +6,7 @@ import { startAutoSync } from './sync/syncService';
 import './styles.css';
 import './styles-lists.css';
 import './styles-session.css';
+import './styles-oral.css';
 
 // Service worker : mise en cache hors ligne et mise à jour automatique
 registerSW({ immediate: true });

@@ -8,7 +8,7 @@ import { useSyncExternalStore } from 'react';
 import { db, markSyncTransaction, onLocalChange } from '../db/db';
 import { deviceId } from '../db/device';
 import { ConflictError, checkRepo, readFile, writeFile, type GitHubTarget } from './github';
-import { mergeData, type SyncData } from './merge';
+import { mergeData, toneLogKey, type SyncData } from './merge';
 
 const CONFIG_KEY = 'polychinese.sync';
 const FORMAT = 'polychinese-sync';
@@ -79,7 +79,7 @@ export function useSyncStatus(): SyncStatus {
 // --- Lecture et application des données
 
 export async function snapshot(): Promise<SyncData> {
-  const [items, cards, decks, reviewLogs, days, sessions, tombstones] = await Promise.all([
+  const [items, cards, decks, reviewLogs, days, sessions, tombstones, toneLogs] = await Promise.all([
     db.items.toArray(),
     db.cards.toArray(),
     db.decks.toArray(),
@@ -87,11 +87,12 @@ export async function snapshot(): Promise<SyncData> {
     db.days.toArray(),
     db.sessions.toArray(),
     db.tombstones.toArray(),
+    db.toneLogs.toArray(),
   ]);
-  return { items, cards, decks, reviewLogs, days, sessions, tombstones };
+  return { items, cards, decks, reviewLogs, days, sessions, tombstones, toneLogs };
 }
 
-const ALL_TABLES = () => [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones];
+const ALL_TABLES = () => [db.items, db.cards, db.decks, db.reviewLogs, db.days, db.sessions, db.tombstones, db.toneLogs];
 
 /**
  * Fusionne des données distantes avec les données locales et n'écrit que ce qui change.
@@ -133,6 +134,13 @@ export async function applyRemote(remote: SyncData): Promise<boolean> {
     const newLogs = merged.reviewLogs.filter((l) => !localLogs.has(`${l.cardId}|${l.at.getTime()}`));
     if (newLogs.length) {
       await db.reviewLogs.bulkAdd(newLogs.map((l) => ({ ...l, id: undefined })));
+      changed = true;
+    }
+
+    const localTones = new Set((local.toneLogs ?? []).map(toneLogKey));
+    const newTones = (merged.toneLogs ?? []).filter((l) => !localTones.has(toneLogKey(l)));
+    if (newTones.length) {
+      await db.toneLogs.bulkAdd(newTones.map((l) => ({ ...l, id: undefined })));
       changed = true;
     }
 
@@ -182,6 +190,7 @@ export function signature(data: SyncData): string {
     data.reviewLogs.map((l) => `${l.cardId}|${l.at.getTime()}`).sort().join(','),
     data.days.map((d) => `${d.day}:${JSON.stringify(Object.entries(d.devices ?? {}).sort())}:${d.expressDone ?? ''}`).sort().join(','),
     data.tombstones.map((t) => `${t.key}@${t.at}`).sort().join(','),
+    (data.toneLogs ?? []).map(toneLogKey).sort().join(','),
   ].join('#');
 }
 
